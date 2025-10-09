@@ -60,7 +60,7 @@ export default function LoginPage() {
               <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
             </svg>
           </div>
-          <CardTitle className="text-2xl text-center">Login to MediCare</CardTitle>
+          <CardTitle className="text-2xl text-center">Login to Odyssey</CardTitle>
           <CardDescription className="text-center">Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -101,12 +101,12 @@ export default function LoginPage() {
               {loading ? "Logging in..." : "Log in"}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
+          {/* <div className="mt-4 text-center text-sm">
             <p>Demo Credentials:</p>
             <p className="text-muted-foreground">Admin: admin@medicare.com / admin123</p>
             <p className="text-muted-foreground">Doctor: doctor@medicare.com / doctor123</p>
             <p className="text-muted-foreground">Reception: reception@medicare.com / reception123</p>
-          </div>
+          </div> */}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-center text-sm">

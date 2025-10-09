@@ -173,7 +173,8 @@ export default function Home() {
         </section>
         <section id= "popular-trips">
               <div className="container">
-                <div className=" flex flex-col items-center space-y-2">
+                <div className="flex flex-col items-center justify-center space-y-4 text-center">
+                <div className="space-y-2">
                   <div className="inline-block rounded-lg bg-teal-100 px-3 py-1 text-sm text-teal-700 dark:bg-teal-700/20 dark:text-teal-400">
                   Traveler's Choice
                   </div>
@@ -181,7 +182,9 @@ export default function Home() {
                   Browse Our Most Popular Holiday Packages
                   </h2>
                   <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                  Discover the trips our community loves most! From weekend getaways to week-long explorations.</p>
+                  Discover the trips our community loves most! From weekend getaways to week-long explorations.
+                  </p>
+                </div>
                 </div>
                 <div className="mx-auto grid max-w-8xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:grid-cols-4">
                 {[

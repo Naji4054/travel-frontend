@@ -23,16 +23,16 @@ const UserLayout = ({children}: any) => {
             <span className="text-xl font-bold">Odyssey</span>
           </div>
           <nav className="hidden md:flex gap-6">
-            <Link href="#home" className="text-sm font-medium">
+            <Link href="/" className="text-sm font-medium">
               Home
             </Link>
-            <Link href="#international package" className="text-sm font-medium">
+            <Link href="/international" className="text-sm font-medium">
               International
             </Link>
-            <Link href="#Indain packages" className="text-sm font-medium">
+            <Link href="/indian" className="text-sm font-medium">
               Indian
             </Link>
-            <Link href="#group packages" className="text-sm font-medium">
+            <Link href="/group" className="text-sm font-medium">
               Group
             </Link>
             <Link href="/about" className="text-sm font-medium">
