@@ -1,122 +1,180 @@
 "use client"
 
-import type React from "react"
+import React, {  useEffect, useState } from 'react';
+import Joi from 'joi';
+import axios from 'axios'
+import { useRouter } from 'next/navigation';
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 
-export default function LoginPage() {
+
+// This component provides the structure and styling for a login form.
+// It uses only JSX and Tailwind CSS classes, without any functional logic,
+// fulfilling the requirement for a pure presentation layer.
+
+interface LoginUser {
+  email: String;
+  password: String
+}
+
+const schema = Joi.object({
+  email: Joi.string()
+  .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
+  .min(3)
+  .max(30)
+  .required(),
+  password: Joi.string()
+  .pattern(new RegExp('^[a-zA-Z0-9!@#$%^&*()_+,-.]{1,100}$')).min(8),
+})
+
+const LoginForm = () => {
+
   const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+  const [userData, setUserData] = useState<LoginUser>({
+    email: "",
+    password: ""
+  })
 
-    // For demo purposes, we'll use hardcoded credentials
-    // In a real app, this would connect to Supabase auth
-    if (email === "admin@medicare.com" && password === "admin123") {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      router.push("/dashboard")
-    } else if (email === "doctor@medicare.com" && password === "doctor123") {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      router.push("/dashboard")
-    } else if (email === "reception@medicare.com" && password === "reception123") {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      router.push("/dashboard")
-    } else {
-      setError("Invalid email or password")
+  const [errors, setErrors] = useState<any>({})
+
+
+  const handleInputChange = (e: any) =>{
+    const{name, value} = e.target
+    setUserData((prev:LoginUser) => ({...prev ,[name]:value}))
+    setErrors((prev: any)=> ({...prev, [name]: null}))
+  }
+  
+  useEffect(()=> {
+    console.log(errors, 'userdata')
+  }, [errors])
+
+  const validate = async (data: any) => {
+    let res = false
+    try {
+      const result = await schema.validateAsync(data)
+      console.log(result, 'result')
+      res = true
+    } catch (error: any) {
+      console.log(error.details, 'error')//error details is an array containing object which gives error details it includes context in which there is key and messege
+      error.details.map((err: any)=> {
+        res = false
+        setErrors((prev: any)=> ({ ...prev, [err.context.key]: err.message}))
+      })
     }
 
-    setLoading(false)
+    return res
   }
 
+  const handleSubmit = async()=>{
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+    const isValid = await validate(userData) 
+    console.log(isValid, 'valid res')
+    if (isValid) {
+      await axios.post(`${baseUrl}/auth/login`,userData).then(res=> {
+        console.log(res.data, 'response')
+        localStorage.setItem('access_token',res.data.token)
+        router.push('/dashboard')
+
+      }
+      ).catch(err=>console.log(err))
+    } 
+   
+  }
+
+  
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-white to-teal-50 dark:from-gray-950 dark:to-gray-900 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <div className="flex items-center justify-center mb-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-10 w-10 text-teal-600"
+    // Main container: Centers the form vertically and horizontally on the screen
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+      
+      {/* Login Card Container */}
+      <div className="bg-white p-8 md:p-10 shadow-2xl rounded-2xl w-full max-w-sm border border-gray-100">
+        
+        {/* Header Section */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
+            Welcome Back
+          </h1>
+          <p className="text-gray-500 text-sm">
+            Sign in to continue to your dashboard.
+          </p>
+        </div>
+        
+        {/* Form Fields - No <form> tag used, as per "HTML part without logic" */}
+        <div className="space-y-6">
+          
+          {/* Email Field Group */}
+          <div>
+            <label 
+              htmlFor="email" 
+              className="block text-sm font-medium text-gray-700 mb-2"
             >
-              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-            </svg>
+              Email Address
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              onChange={handleInputChange}
+              // The appearance is purely defined by Tailwind classes
+              className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out sm:text-sm"
+              placeholder="you@example.com"
+              // Note: No onChange or value attributes are included
+            />
+            { errors.email && <span className='text-red-600 text-sm'>{errors.email}</span>}
           </div>
-          <CardTitle className="text-2xl text-center">Login to Odyssey</CardTitle>
-          <CardDescription className="text-center">Enter your credentials to access your account</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@medicare.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link href="/forgot-password" className="text-sm text-teal-600 hover:underline">
-                  Forgot password?
-                </Link>
-              </div>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700" disabled={loading}>
-              {loading ? "Logging in..." : "Log in"}
-            </Button>
-          </form>
-          {/* <div className="mt-4 text-center text-sm">
-            <p>Demo Credentials:</p>
-            <p className="text-muted-foreground">Admin: admin@medicare.com / admin123</p>
-            <p className="text-muted-foreground">Doctor: doctor@medicare.com / doctor123</p>
-            <p className="text-muted-foreground">Reception: reception@medicare.com / reception123</p>
-          </div> */}
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          <div className="text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-teal-600 hover:underline">
-              Sign up
-            </Link>
+
+          {/* Password Field Group */}
+          <div>
+            <label 
+              htmlFor="password" 
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              onChange={handleInputChange}
+              // The appearance is purely defined by Tailwind classes
+              className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out sm:text-sm"
+              placeholder="••••••••"
+              // Note: No onChange or value attributes are included
+            />
+            
+            {errors.password && <span>{errors.password}</span>}
           </div>
-        </CardFooter>
-      </Card>
+
+          {/* Optional: Placeholder for "Forgot Password" or other links */}
+          <div className="flex justify-end text-xs">
+            <a href="#" className="font-medium text-blue-600 hover:text-blue-500 transition duration-150">
+              Forgot password?
+            </a>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            // The styling focuses on a professional, clickable look
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 ease-in-out"
+            // Note: No onClick attribute is included
+          >
+            Sign In
+          </button>
+        </div>
+
+        {/* Footer Link/Sign Up Prompt */}
+        <p className="mt-8 text-center text-sm text-gray-600">
+          Not a member? {' '}
+          <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+            Create an account
+          </a>
+        </p>
+
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default LoginForm;
