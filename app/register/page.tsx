@@ -95,7 +95,7 @@ const SignUpForm = () => {
     if(isValid){
       await axios.post(`${baseUrl}/auth/register`,userData).then(res =>{
         console.log(res.data,"response")
-        localStorage.setItem('access_token', res.data.token)
+        sessionStorage.setItem('access_token', res.data.token)
 
       }).catch(err=>{
         console.log('hello world')

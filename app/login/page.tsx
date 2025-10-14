@@ -4,6 +4,7 @@ import React, {  useEffect, useState } from 'react';
 import Joi from 'joi';
 import axios from 'axios'
 import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
 
 
 
@@ -70,13 +71,21 @@ const LoginForm = () => {
     const isValid = await validate(userData) 
     console.log(isValid, 'valid res')
     if (isValid) {
-      await axios.post(`${baseUrl}/auth/login`,userData).then(res=> {
-        console.log(res.data, 'response')
-        localStorage.setItem('access_token',res.data.token)
-        router.push('/dashboard')
+      try {
+        const res = await axios.post(`${baseUrl}/auth/login`, userData);
+        const { role, token } = res.data
+        console.log(res.data,'res-cookie')
+        Cookies.set("access_token",token, { expiresIn: 30 });
+        Cookies.set("role",role,{ expiresIn: 30 });
 
+        if(role === "admin" ){
+          router.push('/dashboard')
+        } else {
+          router.push('/')
+        }
+      } catch (err) {
+        console.error(err)
       }
-      ).catch(err=>console.log(err))
     } 
    
   }

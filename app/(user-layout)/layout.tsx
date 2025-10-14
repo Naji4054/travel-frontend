@@ -30,7 +30,7 @@ const UserLayout = ({children}: any) => {
               International
             </Link>
             <Link href="/indian" className="text-sm font-medium">
-              Indian
+              Domestic
             </Link>
             <Link href="/group" className="text-sm font-medium">
               Group
