@@ -75,8 +75,8 @@ const LoginForm = () => {
         const res = await axios.post(`${baseUrl}/auth/login`, userData);
         const { role, token } = res.data
         console.log(res.data,'res-cookie')
-        Cookies.set("access_token",token, { expiresIn: 30 });
-        Cookies.set("role",role,{ expiresIn: 30 });
+        Cookies.set("access_token",token, { expires: 30 });
+        Cookies.set("role",role,{ expires: 30 });
 
         if(role === "admin" ){
           router.push('/dashboard')

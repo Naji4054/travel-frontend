@@ -1,42 +1,46 @@
+
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import path from "path";
 
-const ADMIN_PATHS = ["/dashboard", "/admin","/dashboard/packages","/dashboard/category","dashboard/location"];
-const USER_PATHS = ["/auth/register","/international","/indian","/group"]
+const ADMIN_PATHS: string[] = ["/dashboard", "/admin","/dashboard/packages","/dashboard/category","dashboard/location"];
+const USER_PATHS: string[] = [];
+const PUBLIC_PATHS : string[] = ["/", "/login", "/register", "/international", "/indian", "/group"];
 
 const middleware = async (req: NextRequest) => {
     const { pathname } = req.nextUrl;
     const token = req.cookies.get("access_token")?.value
     const role = req.cookies.get("role")?.value;
-    if (!token) {
-        if(pathname.startsWith("/dashboard") || pathname.startsWith("/admin")){
-            return NextResponse.redirect(new URL ("/login", req.url))
-        }
-        return NextResponse.next()
-    }
-     try {
-        const decodedToken: any = jwt.verify(token ,process.env.JWT_SECRET_KEY!)
-        if(ADMIN_PATHS.some((p)=> pathname.startsWith(p))) {
-            if (role !== "admin") {
-                return NextResponse.redirect(new URL("/", req.url)); // redirect non-admins
-              }
-        }
-        if (pathname.startsWith("/dashboard") || pathname.startsWith("/admin")) {
-            if (role === "admin") {
-                return NextResponse.redirect(new URL("/dashboard", req.url));
+   
+    //  Public pages are always allowed
+  if (PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
+    return NextResponse.next();
+  }
+    // if no token
+    if(!token) {
+        return NextResponse.redirect(new URL("/login", req.url));
+    } else {
+        // logined user 
+        if (ADMIN_PATHS.some((path)=> pathname.startsWith(path))){
+            
+            if( role === 'admin'){
+                // if its admin allow admin paths 
+                return NextResponse.next();
+            } else {
+                // if role is anything other than admin show unauthorised page 
+                return NextResponse.rewrite(new URL("/unauthorized", req.url));
             }
-            else return NextResponse.redirect(new URL("/", req.url));
-          }
-          return NextResponse.next()
-     } catch (err) {
-        console.error("JWT verification failed:", err);
-        const response = NextResponse.redirect(new URL("/login", req.url));
-        response.cookies.delete("access_token");
-        response.cookies.delete("role");
-        return response;
-     }
-
+        }
+        // if users with role NOT admin access user paths 
+        if(USER_PATHS.some((path)=> pathname.startsWith(path))){
+            if( role !== 'admin'){
+                return NextResponse.next();
+            }
+            return NextResponse.redirect(new URL("/dashboard", req.url));
+        }
+        // all pages other than the routes mentioned in admin paths and userpaths are alllowed to proceed normally
+        return NextResponse.next();
+    }
+    
 }
 
 export const config = {
