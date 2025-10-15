@@ -1,6 +1,6 @@
 "use client"
-
-import { useState } from "react"
+import Cookies from 'js-cookie'
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,6 +19,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { CalendarPlus, Clock, Filter, Search } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
+import axios from "axios"
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
 
 // Sample appointment data
 const appointments = [
@@ -96,14 +100,95 @@ const appointments = [
   },
 ]
 
-// Sample doctors data
-const doctors = [
+// 
+interface PackageInfo {
+  title : string
+  description : string,
+  duration: string,
+  type: string,
+  category: string,
+  dateA: string,
+  dateB: string,
+  dateC: string,
+  image: string,
+  status: string,
+  price: string,
+  location: string
+
+}
+
+interface Options {
+  category: { title: string; _id: string }[],
+  locations: { title: string; _id: string }[]
+}
+export default function AppointmentsPage() {
+
+ 
+
+// package data
+
+const [packageData, setPackageData] = useState<PackageInfo>({
+  title : "",
+  description: "",
+  duration: "",
+  type: "",
+  category: "",
+  dateA: "",
+  dateB: "",
+  dateC: "",
+  image: "",
+  status: "",
+  location:"",
+  price: ""
+})
+const handleInputChange = (e:any) => {
+  const{name, value} = e.target
+  setPackageData((prev:any) => ({...prev, [name]:value}))
+}
+
+const [options, setOptions] = useState<Options>({
+  category: [],
+  locations: []
+})
+// 
+const fetchOptions = async()=> {
+
+  await axios.get(`${baseUrl}/packages/add-options`).then(res=> {
+    console.log(res.data.data, '---res data-----')
+    setOptions(res.data.data)
+  }).catch(err=> {
+    console.error(err?.message)
+  })
+}
+
+useEffect(()=>{
+  fetchOptions()
+},[])
+
+const token = Cookies.get('access_token')
+useEffect(()=> {
+  console.log(options.locations,'location options')
+},[options])
+const handleSubmit = async(e:any) =>{
+
+  e.preventDefault()
+  
+  const res = await axios.post(`${baseUrl}/packages/add-packages`,packageData,{
+    headers : {
+      "Authorization":`Bearer ${token}`
+    }
+  }).then(res => console.log(res)).catch(err => console.log(err))
+
+}
+// package data
+
+ // Sample doctors data
+ const doctors = [
   { id: 1, name: "Dr. Smith", specialty: "General Medicine" },
   { id: 2, name: "Dr. Wilson", specialty: "Cardiology" },
   { id: 3, name: "Dr. Brown", specialty: "Pediatrics" },
 ]
 
-export default function AppointmentsPage() {
   const [date, setDate] = useState<Date | undefined>(new Date())
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedDoctor, setSelectedDoctor] = useState<string | undefined>("all")
@@ -128,7 +213,7 @@ export default function AppointmentsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Appointments</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Packages</h2>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-teal-600 hover:bg-teal-700">
@@ -141,121 +226,161 @@ export default function AppointmentsPage() {
               <DialogTitle>Add New Appointment</DialogTitle>
               <DialogDescription>Create a new appointment for a patient.</DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="patient" className="text-right">
-                  Patient
-                </Label>
-                <div className="col-span-3">
-                  <Select>
-                    <SelectTrigger id="patient">
-                      <SelectValue placeholder="Select patient" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="John Doe">John Doe</SelectItem>
-                      <SelectItem value="Sarah Johnson">Sarah Johnson</SelectItem>
-                      <SelectItem value="Mike Williams">Mike Williams</SelectItem>
-                      <SelectItem value="Emily Davis">Emily Davis</SelectItem>
-                      <SelectItem value="Robert Miller">Robert Miller</SelectItem>
-                    </SelectContent>
-                  </Select>
+
+
+            <form action="">
+
+                <div className="grid gap-4 py-4">
+                 
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="title" className="text-right">
+                      Title
+                    </Label>
+                    <div className="col-span-3">
+                      <Input onChange ={handleInputChange} value= {packageData.title} name ="title" id="title" placeholder="Package Name" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="description" className="text-right">
+                      Description
+                    </Label>
+                    <div className="col-span-3">
+                      <Textarea  onChange ={handleInputChange} value= {packageData.description} name="description" id= "description">
+
+                      </Textarea>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="image" className="text-right">
+                      Image
+                    </Label>
+                    <div className="col-span-3">
+                      <Input name="image"
+                      value= {packageData.image}
+                       onChange={(e) =>handleInputChange({target: { name: "image", value: e.target.files || null },})
+                      }
+                       id="image" 
+                       type ="file"/>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="duration" className="text-right">
+                      Duration
+                    </Label>
+                    <div className="col-span-3">
+                      <Input onChange ={handleInputChange} value= {packageData.duration} name="duration" id="duration" placeholder="3D 4N" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="category" className="text-right">
+                      Category
+                    </Label>
+                    <div className="col-span-3">
+                      <Select value ={packageData.category}
+                      onValueChange={(val)=> handleInputChange({target : {name: "category", value: val}})}>
+                        <SelectTrigger id="category">
+                          <SelectValue placeholder="Select Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {
+                            options?.category?.map((cat: any)=> <SelectItem  key ={cat._id} value={cat._id}>{cat.title}</SelectItem>)
+                          }
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="Location" className="text-right">
+                      Location
+                    </Label>
+                    <div className="col-span-3">
+                      <Select value ={packageData.location}
+                      onValueChange={(val)=> handleInputChange({target : {name: "location", value: val}})}>
+                        <SelectTrigger id="location">
+                          <SelectValue placeholder="Select Destination"/>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {
+                            options?.locations?.map((loc: any)=> <SelectItem key ={loc._id} value={loc._id}>{loc.title}</SelectItem>)
+                          }
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="type" className="text-right">
+                      Type
+                    </Label>
+                    <div className="col-span-3">
+                      <Select value ={packageData.type}
+                      onValueChange={(val)=> handleInputChange({target : {name: "type", value: val}})}>
+                        <SelectTrigger id="type">
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="international">International</SelectItem>
+                          <SelectItem value="domestic">Domestic</SelectItem>
+                          <SelectItem value="group">Group</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="date" className="text-right">
+                      Date
+                    </Label>
+                    <div className="col-span-3">
+                      <Input onChange ={handleInputChange} value= {packageData.dateA} name ="dateA" id="date1" placeholder="Available Dates" />
+                      <Input onChange ={handleInputChange} value= {packageData.dateB} name="dateB" id="date2" placeholder="Available Dates" />
+                      <Input onChange ={handleInputChange} value= {packageData.dateC} name="dateC" id="date3" placeholder="Available Dates" />
+                    </div>
+                  </div>
+
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="status" className="text-right">
+                      Status
+                    </Label>
+                    <div className="col-span-3">
+                      <Select value = {packageData.status} 
+                      onValueChange={(val)=> handleInputChange({target: {name: "status" , value: val}})}>
+                        <SelectTrigger id="status">
+                          <SelectValue placeholder="Select Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="doctor" className="text-right">
-                  Doctor
-                </Label>
-                <div className="col-span-3">
-                  <Select>
-                    <SelectTrigger id="doctor">
-                      <SelectValue placeholder="Select doctor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {doctors.map((doctor) => (
-                        <SelectItem key={doctor.id} value={doctor.name}>
-                          {doctor.name} - {doctor.specialty}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="date" className="text-right">
-                  Date
-                </Label>
-                <div className="col-span-3">
-                  <Input id="date" type="date" defaultValue={new Date().toISOString().split("T")[0]} />
-                </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="time" className="text-right">
-                  Time
-                </Label>
-                <div className="col-span-3">
-                  <Select>
-                    <SelectTrigger id="time">
-                      <SelectValue placeholder="Select time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="9:00 AM">9:00 AM</SelectItem>
-                      <SelectItem value="9:30 AM">9:30 AM</SelectItem>
-                      <SelectItem value="10:00 AM">10:00 AM</SelectItem>
-                      <SelectItem value="10:30 AM">10:30 AM</SelectItem>
-                      <SelectItem value="11:00 AM">11:00 AM</SelectItem>
-                      <SelectItem value="11:30 AM">11:30 AM</SelectItem>
-                      <SelectItem value="1:00 PM">1:00 PM</SelectItem>
-                      <SelectItem value="1:30 PM">1:30 PM</SelectItem>
-                      <SelectItem value="2:00 PM">2:00 PM</SelectItem>
-                      <SelectItem value="2:30 PM">2:30 PM</SelectItem>
-                      <SelectItem value="3:00 PM">3:00 PM</SelectItem>
-                      <SelectItem value="3:30 PM">3:30 PM</SelectItem>
-                      <SelectItem value="4:00 PM">4:00 PM</SelectItem>
-                      <SelectItem value="4:30 PM">4:30 PM</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="type" className="text-right">
-                  Type
-                </Label>
-                <div className="col-span-3">
-                  <Select>
-                    <SelectTrigger id="type">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Consultation">Consultation</SelectItem>
-                      <SelectItem value="Follow-up">Follow-up</SelectItem>
-                      <SelectItem value="Check-up">Check-up</SelectItem>
-                      <SelectItem value="Emergency">Emergency</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="notes" className="text-right">
-                  Notes
-                </Label>
-                <div className="col-span-3">
-                  <Input id="notes" placeholder="Additional notes" />
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+
+                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                 Cancel
               </Button>
               <Button
                 className="bg-teal-600 hover:bg-teal-700"
-                onClick={() => {
-                  // In a real app, this would save the appointment to the database
-                  setIsAddDialogOpen(false)
-                }}
+                onClick={handleSubmit}
               >
                 Save Appointment
               </Button>
+            </form>
+
+
+
+
+            <DialogFooter>
+              
             </DialogFooter>
           </DialogContent>
         </Dialog>
