@@ -113,7 +113,8 @@ interface PackageInfo {
   image: string,
   status: string,
   price: string,
-  location: string
+  location: string,
+
 
 }
 
@@ -344,7 +345,14 @@ const handleSubmit = async(e:any) =>{
                       <Input onChange ={handleInputChange} value= {packageData.dateC} name="dateC" id="date3" placeholder="Available Dates" />
                     </div>
                   </div>
-
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="price" className="text-right">
+                      Price
+                    </Label>
+                    <div className="col-span-3">
+                      <Input onChange ={handleInputChange} value= {packageData.price} name ="price" id="price" placeholder="Price" />
+                    </div>
+                  </div>
 
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="status" className="text-right">
@@ -363,6 +371,7 @@ const handleSubmit = async(e:any) =>{
                       </Select>
                     </div>
                   </div>
+
                 </div>
 
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
