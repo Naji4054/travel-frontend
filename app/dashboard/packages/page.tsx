@@ -102,19 +102,52 @@ const appointments = [
 ]
 
 // 
-interface PackageInfo {
+interface AddPackageFormData {
+  _id: string;
   title : string
   description : string,
   duration: string,
   type: string,
-  category: string,
+  category: {
+    _id: string;
+    title: string
+  },
   dateA: string,
   dateB: string,
   dateC: string,
-  images?: File[],
+  image?: File[],
   status: string,
   price: string,
-  location: string,
+  location: {
+    _id: string
+    title: string
+  },
+
+
+}
+interface PackageInfo {
+  _id: string;
+  title : string
+  description : string,
+  duration: string,
+  type: string,
+  category: {
+    _id: string;
+    title: string
+  },
+  dateA: string,
+  dateB: string,
+  dateC: string,
+  image:{
+    url: string,
+    altText: string
+  }[],
+  status: string,
+  price: string,
+  location: {
+    _id: string
+    title: string
+  },
 
 
 }
@@ -129,18 +162,25 @@ export default function Packages() {
 
 // package data
 
-const [packageData, setPackageData] = useState<PackageInfo>({
+const [packageData, setPackageData] = useState<AddPackageFormData>({
+  _id: '',
   title : "",
   description: "",
   duration: "",
   type: "",
-  category: "",
+  category: {
+    _id: '',
+    title: ''
+  },
   dateA: "",
   dateB: "",
   dateC: "",
-  images:[],
+  image:[],
   status: "",
-  location:"",
+  location:{
+    _id: '',
+    title: ''
+  },
   price: ""
 })
 
@@ -152,7 +192,7 @@ const handleInputChange = (e:any) => {
 const handleFileChange = (e:any)=> {
   if (e.target.files) {
     const filesArray: File[] = Array.from(e.target.files);
-    setPackageData((prev: PackageInfo) => ({ ...prev, images: filesArray }));
+    setPackageData((prev: AddPackageFormData) => ({ ...prev, images: filesArray }));
   }
 }
 
@@ -191,11 +231,11 @@ const handleSubmit = async(e:any) =>{
   
   Object.keys(packageData).forEach(key =>{
     if ( key !== "images"){
-      const value  = packageData[ key as  keyof PackageInfo]
+      const value  = packageData[ key as  keyof AddPackageFormData]
       if ( value !== undefined ) formData.append( key , value as string);
     }
   });
-   packageData.images?.forEach(file => {
+   packageData.image?.forEach(file => {
     formData.append("images", file)
    })
 
@@ -209,6 +249,37 @@ const handleSubmit = async(e:any) =>{
 
 }
 // package data
+
+
+// listing package 
+const [packageList, setPackageList] = useState<AddPackageFormData[]>([])
+const fetchList = async() => {
+  const res =  axios.get(`${baseUrl}/packages/all-packages`).then(res => setPackageList(res.data.data)).catch(err => console.log(err))
+}
+useEffect(()=>{
+fetchList()
+},[])
+//listing packages 
+
+// view single package 
+
+const [viewPackage, setViewPackage] = useState<PackageInfo>()
+const [viewOpen, setViewOpen] = useState(false)
+const handleView = async (id: string) => {
+  try {
+    const res = await axios.get(`${baseUrl}/packages/view-package/${id}`)
+    setViewPackage(res.data.data)
+    setViewOpen(true)
+  } catch (err) {
+    console.error(err)
+  }
+}
+useEffect(()=>{
+  console.log(viewPackage,'...view...')
+},[viewPackage])
+// view single package 
+
+
 
  // Sample doctors data
  const doctors = [
@@ -306,7 +377,7 @@ const handleSubmit = async(e:any) =>{
                       Category
                     </Label>
                     <div className="col-span-3">
-                      <Select value ={packageData.category}
+                      <Select value ={packageData.category.title}
                       onValueChange={(val)=> handleInputChange({target : {name: "category", value: val}})}>
                         <SelectTrigger id="category">
                           <SelectValue placeholder="Select Category" />
@@ -325,7 +396,7 @@ const handleSubmit = async(e:any) =>{
                       Location
                     </Label>
                     <div className="col-span-3">
-                      <Select value ={packageData.location}
+                      <Select value ={packageData.location.title}
                       onValueChange={(val)=> handleInputChange({target : {name: "location", value: val}})}>
                         <SelectTrigger id="location">
                           <SelectValue placeholder="Select Destination"/>
@@ -488,46 +559,39 @@ const handleSubmit = async(e:any) =>{
 
                     </thead>
                     <tbody>
-                      {filteredAppointments.length === 0 ? (
+                      {packageList.length === 0 ? (
                         <tr>
                           <td colSpan={6} className="h-24 text-center">
-                            No appointments found.
+                            No Package found.
                           </td>
                         </tr>
                       ) : (
-                        filteredAppointments.map((appointment) => (
+                        packageList.map((item) => (
                           <tr
-                            key={appointment.id}
+                            key={item._id}
                             className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
                           >
-                            <td className="p-4 align-middle">{appointment.patient}</td>
-                            <td className="p-4 align-middle">{appointment.doctor}</td>
-                            <td className="p-4 align-middle">
-                              <div className="flex flex-col">
-                                <span>{new Date(appointment.date).toLocaleDateString()}</span>
-                                <span className="text-xs text-muted-foreground flex items-center">
-                                  <Clock className="mr-1 h-3 w-3" />
-                                  {appointment.time}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="p-4 align-middle">{appointment.type}</td>
+                            <td className="p-4 align-middle">{item?._id}</td>
+                            <td className="p-4 align-middle">{item.title}</td>
+                            <td className="p-4 align-middle">{item.type}</td>
+                            <td className="p-4 align-middle">{item.location.title}</td>
+                            <td className="p-4 align-middle">{item.price}</td>
                             <td className="p-4 align-middle">
                               <Badge
                                 variant={
-                                  appointment.status === "Confirmed"
+                                  item.status === "active"
                                     ? "default"
-                                    : appointment.status === "Pending"
+                                    : item.status === "inactive"
                                       ? "outline"
                                       : "destructive"
                                 }
                               >
-                                {appointment.status}
+                                {item.status}
                               </Badge>
                             </td>
                             <td className="p-4 align-middle">
                               <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="sm">
+                                <Button  onClick={() => handleView(item._id)} variant="ghost" size="sm">
                                   View
                                 </Button>
                                 <Button variant="ghost" size="sm">
@@ -545,7 +609,7 @@ const handleSubmit = async(e:any) =>{
             </div>
           </div>
         </TabsContent>
-        <TabsContent value="calendar" className="space-y-4">
+        {/* <TabsContent value="calendar" className="space-y-4">
           <div className="flex flex-col gap-4 md:flex-row">
             <div className="md:w-[300px]">
               <Card>
@@ -645,8 +709,69 @@ const handleSubmit = async(e:any) =>{
               </Card>
             </div>
           </div>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
+           
+      <Dialog open={viewOpen} onOpenChange={setViewOpen}>
+  <DialogContent className="sm:max-w-[600px]">
+    <DialogHeader>
+      <DialogTitle>View Package</DialogTitle>
+      <DialogDescription>Package details</DialogDescription>
+    </DialogHeader>
+
+    {viewPackage ? (
+      <div className="space-y-4">
+        <div>
+          <h3 className="font-semibold">Title:</h3>
+          <p>{viewPackage.title}</p>
+        </div>
+        <div>
+          <h3 className="font-semibold">Description:</h3>
+          <p>{viewPackage.description}</p>
+        </div>
+        <div>
+          <h3 className="font-semibold">Category:</h3>
+          <p>{viewPackage.category?.title}</p>
+        </div>
+        <div>
+          <h3 className="font-semibold">Location:</h3>
+          <p>{viewPackage.location?.title}</p>
+        </div>
+        <div>
+          <h3 className="font-semibold">Type:</h3>
+          <p>{viewPackage.type}</p>
+        </div>
+        <div>
+          <h3 className="font-semibold">Price:</h3>
+          <p>{viewPackage.price}</p>
+        </div>
+        <div>
+          <h3 className="font-semibold">Status:</h3>
+          <Badge>{viewPackage.status}</Badge>
+        </div>
+        {viewPackage.image?.length ? (
+          <div>
+            <h3 className="font-semibold">Images:</h3>
+            <div className="flex flex-wrap gap-2">
+              {viewPackage.image.map((img, i) => (
+                <img
+                key={i}
+                src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/${img?.url}`} // because url already includes 'uploads/...'
+                alt={img.altText || viewPackage.title}
+                className="h-24 w-24 object-cover rounded"
+              />
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    ) : (
+      <p>Loading...</p>
+    )}
+  </DialogContent>
+</Dialog>
+
+    
     </div>
   )
 }
