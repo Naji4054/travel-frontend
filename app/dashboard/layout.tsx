@@ -10,7 +10,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   BarChart3,
-  Calendar,
+  Plane,
   ClipboardList,
   Home,
   Menu,
@@ -42,7 +42,7 @@ export default function DashboardLayout({
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: Home },
-    { name: "Appointments", href: "/dashboard/appointments", icon: Calendar },
+    { name: "Packages", href: "/dashboard/package", icon: Plane },
     { name: "Patients", href: "/dashboard/patients", icon: Users },
     // { name: "Consultations", href: "/dashboard/consultations", icon: ClipboardList },
     { name: "Pharmacy", href: "/dashboard/pharmacy", icon: Pill },

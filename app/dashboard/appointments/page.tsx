@@ -155,7 +155,10 @@ const [options, setOptions] = useState<Options>({
 const fetchOptions = async()=> {
 
   await axios.get(`${baseUrl}/packages/add-options`).then(res=> {
-    console.log(res.data.data, '---res data-----')
+    console.log(res.data.data, '---res data-----')                                           
+     // res.data =={
+    //   category: [{_id: "123", title: "Domestic"}, {_id: "124", title: "International"}],
+    //   locations: [{_id: "201", title: "Goa"}, {_id: "202", title: "Paris"}] }
     setOptions(res.data.data)
   }).catch(err=> {
     console.error(err?.message)
@@ -219,13 +222,13 @@ const handleSubmit = async(e:any) =>{
           <DialogTrigger asChild>
             <Button className="bg-teal-600 hover:bg-teal-700">
               <CalendarPlus className="mr-2 h-4 w-4" />
-              New Appointment
+              New Package
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[525px]">
             <DialogHeader>
-              <DialogTitle>Add New Appointment</DialogTitle>
-              <DialogDescription>Create a new appointment for a patient.</DialogDescription>
+              <DialogTitle>Add Packagae</DialogTitle>
+              <DialogDescription>Create a new package.</DialogDescription>
             </DialogHeader>
 
 
@@ -307,8 +310,11 @@ const handleSubmit = async(e:any) =>{
                         </SelectTrigger>
                         <SelectContent>
                           {
+                            //location is passed with response from backend
                             options?.locations?.map((loc: any)=> <SelectItem key ={loc._id} value={loc._id}>{loc.title}</SelectItem>)
                           }
+
+                        
                         </SelectContent>
                       </Select>
                     </div>
@@ -386,8 +392,6 @@ const handleSubmit = async(e:any) =>{
             </form>
 
 
-
-
             <DialogFooter>
               
             </DialogFooter>
@@ -450,14 +454,16 @@ const handleSubmit = async(e:any) =>{
                 <div className="relative w-full overflow-auto">
                   <table className="w-full caption-bottom text-sm">
                     <thead>
+
                       <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                        <th className="h-12 px-4 text-left align-middle font-medium">Patient</th>
-                        <th className="h-12 px-4 text-left align-middle font-medium">Doctor</th>
-                        <th className="h-12 px-4 text-left align-middle font-medium">Date & Time</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium">ID</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium">Package</th>
                         <th className="h-12 px-4 text-left align-middle font-medium">Type</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium">Location</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium">Price</th>
                         <th className="h-12 px-4 text-left align-middle font-medium">Status</th>
-                        <th className="h-12 px-4 text-left align-middle font-medium">Actions</th>
                       </tr>
+                      
                     </thead>
                     <tbody>
                       {filteredAppointments.length === 0 ? (
