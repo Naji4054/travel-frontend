@@ -112,9 +112,6 @@ interface AddPackageFormData {
     _id: string;
     title: string
   },
-  dateA: string,
-  dateB: string,
-  dateC: string,
   image?: File[],
   status: string,
   price: string,
@@ -135,9 +132,6 @@ interface PackageInfo {
     _id: string;
     title: string
   },
-  dateA: string,
-  dateB: string,
-  dateC: string,
   image:{
     url: string,
     altText: string
@@ -156,13 +150,8 @@ interface Options {
   category: { title: string; _id: string }[],
   locations: { title: string; _id: string }[]
 }
-export default function Packages() {
 
- 
-
-// package data
-
-const [packageData, setPackageData] = useState<AddPackageFormData>({
+const defaultPackage = {
   _id: '',
   title : "",
   description: "",
@@ -172,9 +161,6 @@ const [packageData, setPackageData] = useState<AddPackageFormData>({
     _id: '',
     title: ''
   },
-  dateA: "",
-  dateB: "",
-  dateC: "",
   image:[],
   status: "",
   location:{
@@ -182,17 +168,35 @@ const [packageData, setPackageData] = useState<AddPackageFormData>({
     title: ''
   },
   price: ""
-})
+}
+
+export default function Packages() {
+
+ //reset form
+const resetForm = () => {
+  setPackageData(defaultPackage);
+  setSelectedPackage(null);
+  setFormLoading(false);
+}
+
+ //reset form
+
+
+// package data
+const [formLoading, setFormLoading] = useState(false)
+const [packageData, setPackageData] = useState<AddPackageFormData>(defaultPackage)
 
 const handleInputChange = (e:any) => {
   const{name, value} = e.target
+  console.log(value, 'e from cat')
   setPackageData((prev:any) => ({...prev, [name]:value}))
 }
 
 const handleFileChange = (e:any)=> {
+  
   if (e.target.files) {
     const filesArray: File[] = Array.from(e.target.files);
-    setPackageData((prev: AddPackageFormData) => ({ ...prev, images: filesArray }));
+    setPackageData((prev: AddPackageFormData) => ({ ...prev, image: filesArray }));
   }
 }
 
@@ -224,28 +228,49 @@ useEffect(()=> {
   console.log(options.locations,'location options')
 },[options])
 
-const handleSubmit = async(e:any) =>{
+
+
+const handleSubmit = async(e:any) => {
   e.preventDefault()
   
   const formData = new FormData()
   
-  Object.keys(packageData).forEach(key =>{
-    if ( key !== "images"){
-      const value  = packageData[ key as  keyof AddPackageFormData]
-      if ( value !== undefined ) formData.append( key , value as string);
+  Object.keys(packageData).forEach((key) => {
+    if (key === "image") return; // skip images
+
+    const value = packageData[key as keyof AddPackageFormData];
+
+    if (value === undefined || value === null) return;
+
+    //  If the value is an object, stringify it
+    if (typeof value === "object") {
+      formData.append(key, JSON.stringify(value));
+    } else {
+      formData.append(key, value as string);
     }
   });
+
+  console.log(packageData.image,'imagee')
    packageData.image?.forEach(file => {
     formData.append("images", file)
    })
 
   //map and append package data into formdata
 
-  const res = await axios.post(`${baseUrl}/packages/add-packages`, formData,{
-    headers : {
-      "Authorization":`Bearer ${token}`
-    }
-  }).then(res => console.log(res)).catch(err => console.log(err))
+  if (selectedPackage) {
+    const res = await axios.patch(`${baseUrl}/packages/update-packages/${selectedPackage}`,formData,{
+      headers : {
+        "Authorization":`Bearer ${token}`
+      }
+    })
+  } else {
+    const res = await axios.post(`${baseUrl}/packages/add-packages`, formData,{
+      headers : {
+        "Authorization":`Bearer ${token}`
+      }
+    }).then(res => console.log(res)).catch(err => console.log(err))
+  }
+ 
 
 }
 // package data
@@ -265,6 +290,7 @@ fetchList()
 
 const [viewPackage, setViewPackage] = useState<PackageInfo>()
 const [viewOpen, setViewOpen] = useState(false)
+
 const handleView = async (id: string) => {
   try {
     const res = await axios.get(`${baseUrl}/packages/view-package/${id}`)
@@ -274,11 +300,49 @@ const handleView = async (id: string) => {
     console.error(err)
   }
 }
+
 useEffect(()=>{
   console.log(viewPackage,'...view...')
 },[viewPackage])
 // view single package 
 
+
+//edit Package
+const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
+const handleFetchCurrentData = async () => {
+
+  if (selectedPackage) {
+    
+    setFormLoading(true)
+    
+      const res = await axios.get(`${baseUrl}/packages/view-package/${selectedPackage}`).then(res=> {
+        setPackageData(res.data.data)
+        setFormLoading(false)
+      }).catch(err=> {
+        console.log(err)
+      }).finally(()=> setFormLoading(false))
+    }
+  }
+  useEffect(()=> {
+    if (selectedPackage)
+       setIsAddDialogOpen(true)
+       handleFetchCurrentData()
+  }, [selectedPackage])
+//edit Package
+
+
+  
+// delete package 
+
+const handlePackageDelete = async (id:string) =>{
+  const res = await axios.delete(`${baseUrl}/packages/delete-packages/${id}`,{
+    headers : {
+      "Authorization":`Bearer ${token}`
+    }
+  }).then().catch(err=>console.log(err))
+}
+
+// delete package 
 
 
  // Sample doctors data
@@ -313,7 +377,13 @@ useEffect(()=>{
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Packages</h2>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+
+        {/* // form */}
+
+        <Dialog open={isAddDialogOpen} onOpenChange={(open)=>{
+          setIsAddDialogOpen(open);
+          if(!open) resetForm()
+        }}>
           <DialogTrigger asChild>
             <Button className="bg-teal-600 hover:bg-teal-700">
               <CalendarPlus className="mr-2 h-4 w-4" />
@@ -327,162 +397,188 @@ useEffect(()=>{
             </DialogHeader>
 
 
-            <form action="">
+          {
+            formLoading && <div>Loading...</div>
+          }
+          {
+            !formLoading && (
+              <form action="">
 
-                <div className="grid gap-4 py-4">
-                 
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="title" className="text-right">
-                      Title
-                    </Label>
-                    <div className="col-span-3">
-                      <Input onChange ={handleInputChange} value= {packageData.title} name ="title" id="title" placeholder="Package Name" />
-                    </div>
+              <div className="grid gap-4 py-4">
+               
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="title" className="text-right">
+                    Title
+                  </Label>
+                  <div className="col-span-3">
+                    <Input onChange ={handleInputChange} value= {packageData.title} name ="title" id="title" placeholder="Package Name" />
                   </div>
-
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="description" className="text-right">
-                      Description
-                    </Label>
-                    <div className="col-span-3">
-                      <Textarea  onChange ={handleInputChange} value= {packageData.description} name="description" id= "description">
-
-                      </Textarea>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="image" className="text-right">
-                      Image
-                    </Label>
-                    <div className="col-span-3">
-                      <Input name="image"
-                       onChange={ handleFileChange}
-                       id="image" 
-                       type ="file"/>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="duration" className="text-right">
-                      Duration
-                    </Label>
-                    <div className="col-span-3">
-                      <Input onChange ={handleInputChange} value= {packageData.duration} name="duration" id="duration" placeholder="3D 4N" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="category" className="text-right">
-                      Category
-                    </Label>
-                    <div className="col-span-3">
-                      <Select value ={packageData.category.title}
-                      onValueChange={(val)=> handleInputChange({target : {name: "category", value: val}})}>
-                        <SelectTrigger id="category">
-                          <SelectValue placeholder="Select Category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {
-                            options?.category?.map((cat: any)=> <SelectItem  key ={cat._id} value={cat._id}>{cat.title}</SelectItem>)
-                          }
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="Location" className="text-right">
-                      Location
-                    </Label>
-                    <div className="col-span-3">
-                      <Select value ={packageData.location.title}
-                      onValueChange={(val)=> handleInputChange({target : {name: "location", value: val}})}>
-                        <SelectTrigger id="location">
-                          <SelectValue placeholder="Select Destination"/>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {
-                            //location is passed with response from backend
-                            options?.locations?.map((loc: any)=> <SelectItem key ={loc._id} value={loc._id}>{loc.title}</SelectItem>)
-                          }
-
-                        
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="type" className="text-right">
-                      Type
-                    </Label>
-                    <div className="col-span-3">
-                      <Select value ={packageData.type}
-                      onValueChange={(val)=> handleInputChange({target : {name: "type", value: val}})}>
-                        <SelectTrigger id="type">
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="International">International</SelectItem>
-                          <SelectItem value="Domestic">Domestic</SelectItem>
-                          <SelectItem value="Group">Group</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  
-
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="date" className="text-right">
-                      Date
-                    </Label>
-                    <div className="col-span-3">
-                      <Input onChange ={handleInputChange} value= {packageData.dateA} name ="dateA" id="date1" placeholder="Available Dates" />
-                      <Input onChange ={handleInputChange} value= {packageData.dateB} name="dateB" id="date2" placeholder="Available Dates" />
-                      <Input onChange ={handleInputChange} value= {packageData.dateC} name="dateC" id="date3" placeholder="Available Dates" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="price" className="text-right">
-                      Price
-                    </Label>
-                    <div className="col-span-3">
-                      <Input onChange ={handleInputChange} value= {packageData.price} name ="price" id="price" placeholder="Price" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="status" className="text-right">
-                      Status
-                    </Label>
-                    <div className="col-span-3">
-                      <Select value = {packageData.status} 
-                      onValueChange={(val)=> handleInputChange({target: {name: "status" , value: val}})}>
-                        <SelectTrigger id="status">
-                          <SelectValue placeholder="Select Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="inactive">Inactive</SelectItem>
-                          <SelectItem value="active">Active</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
                 </div>
 
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                className="bg-teal-600 hover:bg-teal-700"
-                onClick={handleSubmit}
-              >
-                Save Appointment
-              </Button>
-            </form>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="description" className="text-right">
+                    Description
+                  </Label>
+                  <div className="col-span-3">
+                    <Textarea  onChange ={handleInputChange} value= {packageData.description} name="description" id= "description">
+
+                    </Textarea>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="image" className="text-right">
+                    Image
+                  </Label>
+                  <div className="col-span-3">
+                    <Input name="image"
+                     onChange={ handleFileChange}
+                     id="image" 
+                     type ="file"/>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="duration" className="text-right">
+                    Duration
+                  </Label>
+                  <div className="col-span-3">
+                    <Input onChange ={handleInputChange} value= {packageData.duration} name="duration" id="duration" placeholder="3D 4N" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="category" className="text-right">
+                    Category
+                  </Label>
+                  <div className="col-span-3">
+                  <Select
+                  value={packageData.category._id || ""}
+                  onValueChange={(val) => {
+                    const selectedCat = options?.category?.find((cat: any) => cat._id === val);
+                    handleInputChange({
+                      target: {
+                        name: "category",
+                        value: {
+                          _id: selectedCat?._id || "",
+                          title: selectedCat?.title || "",
+                        },
+                      },
+                    });
+                  }}
+                >
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {options?.category?.map((cat: any) => (
+                      <SelectItem key={cat._id} value={cat._id}>
+                        {cat.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="Location" className="text-right">
+                    Location
+                  </Label>
+                  <div className="col-span-3">
+                    <Select
+                      value={packageData.location._id || ""}
+                      onValueChange={(val) => {
+                        const selectedLoc = options?.locations?.find((loc: any) => loc._id === val);
+                        handleInputChange({
+                          target: {
+                            name: "location",
+                            value: {
+                              _id: selectedLoc?._id || "",
+                              title: selectedLoc?.title || "",
+                            },
+                          },
+                        });
+                      }}
+                    >
+                    <SelectTrigger id="location">
+                      <SelectValue placeholder="Select Destination" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options?.locations?.map((loc: any) => (
+                        <SelectItem key={loc._id} value={loc._id}>
+                          {loc.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="type" className="text-right">
+                    Type
+                  </Label>
+                  <div className="col-span-3">
+                    <Select value ={packageData.type}
+                    onValueChange={(val)=> handleInputChange({target : {name: "type", value: val}})}>
+                      <SelectTrigger id="type">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="International">International</SelectItem>
+                        <SelectItem value="Domestic">Domestic</SelectItem>
+                        <SelectItem value="Group">Group</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="price" className="text-right">
+                    Price
+                  </Label>
+                  <div className="col-span-3">
+                    <Input onChange ={handleInputChange} value= {packageData.price} name ="price" id="price" placeholder="Price" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="status" className="text-right">
+                    Status
+                  </Label>
+                  <div className="col-span-3">
+                    <Select value = {packageData.status} 
+                    onValueChange={(val)=> handleInputChange({target: {name: "status" , value: val}})}>
+                      <SelectTrigger id="status">
+                        <SelectValue placeholder="Select Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+              </div>
+
+              <Button variant="outline" onClick={() => {setIsAddDialogOpen(false)
+                resetForm()
+              }}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-teal-600 hover:bg-teal-700"
+              onClick={handleSubmit}
+            >
+              { selectedPackage ? 'Save changes' : 'Add package' }
+            </Button>
+          </form>
+            )
+          }
 
 
             <DialogFooter>
@@ -543,6 +639,8 @@ useEffect(()=>{
                   </Button>
                 </div>
               </div>
+
+              {/* //table */}
               <div className="rounded-md border">
                 <div className="relative w-full overflow-auto">
                   <table className="w-full caption-bottom text-sm">
@@ -594,8 +692,11 @@ useEffect(()=>{
                                 <Button  onClick={() => handleView(item._id)} variant="ghost" size="sm">
                                   View
                                 </Button>
-                                <Button variant="ghost" size="sm">
+                                <Button variant="ghost" size="sm" onClick={()=> setSelectedPackage(item._id)}>
                                   Edit
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={()=> handlePackageDelete(item._id)}>
+                                  Delete
                                 </Button>
                               </div>
                             </td>
@@ -713,63 +814,65 @@ useEffect(()=>{
       </Tabs>
            
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-  <DialogContent className="sm:max-w-[600px]">
-    <DialogHeader>
-      <DialogTitle>View Package</DialogTitle>
-      <DialogDescription>Package details</DialogDescription>
-    </DialogHeader>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>View Package</DialogTitle>
+            <DialogDescription>Package details</DialogDescription>
+          </DialogHeader>
 
-    {viewPackage ? (
-      <div className="space-y-4">
-        <div>
-          <h3 className="font-semibold">Title:</h3>
-          <p>{viewPackage.title}</p>
-        </div>
-        <div>
-          <h3 className="font-semibold">Description:</h3>
-          <p>{viewPackage.description}</p>
-        </div>
-        <div>
-          <h3 className="font-semibold">Category:</h3>
-          <p>{viewPackage.category?.title}</p>
-        </div>
-        <div>
-          <h3 className="font-semibold">Location:</h3>
-          <p>{viewPackage.location?.title}</p>
-        </div>
-        <div>
-          <h3 className="font-semibold">Type:</h3>
-          <p>{viewPackage.type}</p>
-        </div>
-        <div>
-          <h3 className="font-semibold">Price:</h3>
-          <p>{viewPackage.price}</p>
-        </div>
-        <div>
-          <h3 className="font-semibold">Status:</h3>
-          <Badge>{viewPackage.status}</Badge>
-        </div>
-        {viewPackage.image?.length ? (
-          <div>
-            <h3 className="font-semibold">Images:</h3>
-            <div className="flex flex-wrap gap-2">
-              {viewPackage.image.map((img, i) => (
-                <img
-                key={i}
-                src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/${img?.url}`} // because url already includes 'uploads/...'
-                alt={img.altText || viewPackage.title}
-                className="h-24 w-24 object-cover rounded"
-              />
-              ))}
+          {/* //view package */}
+
+          {viewPackage ? (
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold">Title:</h3>
+                <p>{viewPackage.title}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Description:</h3>
+                <p>{viewPackage.description}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Category:</h3>
+                <p>{viewPackage.category?.title}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Location:</h3>
+                <p>{viewPackage.location?.title}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Type:</h3>
+                <p>{viewPackage.type}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Price:</h3>
+                <p>{viewPackage.price}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Status:</h3>
+                <Badge>{viewPackage.status}</Badge>
+              </div>
+              {viewPackage.image?.length ? (
+                <div>
+                  <h3 className="font-semibold">Images:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {viewPackage.image.map((img, i) => (
+                      <img
+                      key={i}
+                      src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/${img?.url}`} // because url already includes 'uploads/...'
+                      alt={img.altText || viewPackage.title}
+                      className="h-24 w-24 object-cover rounded"
+                    />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
-          </div>
-        ) : null}
-      </div>
-    ) : (
-      <p>Loading...</p>
-    )}
-  </DialogContent>
-</Dialog>
+          ) : (
+            <p>Loading...</p>
+          )}
+        </DialogContent>
+      </Dialog>
 
     
     </div>
