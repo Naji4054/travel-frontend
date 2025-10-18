@@ -22,6 +22,7 @@ import { CalendarPlus, Clock, Filter, Search } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import axios from "axios"
 import { object } from 'joi'
+import { useDebounce } from 'use-debounce';
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
 
@@ -171,6 +172,10 @@ const defaultPackage = {
 }
 
 export default function Packages() {
+  const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
+  //selectedPackage is a state variable that will store the _id of the package the user wants to edit.
+  //Initially, it’s null → meaning no package is selected.
+
 
  //reset form
 const resetForm = () => {
@@ -182,7 +187,7 @@ const resetForm = () => {
  //reset form
 
 
-// package data
+// add package data
 const [formLoading, setFormLoading] = useState(false)
 const [packageData, setPackageData] = useState<AddPackageFormData>(defaultPackage)
 
@@ -204,7 +209,6 @@ const [options, setOptions] = useState<Options>({
   category: [],
   locations: []
 })
-// 
 const fetchOptions = async()=> {
 
   await axios.get(`${baseUrl}/packages/add-options`).then(res=> {
@@ -217,6 +221,7 @@ const fetchOptions = async()=> {
     console.error(err?.message)
   })
 }
+// 
 
 useEffect(()=>{
   fetchOptions()
@@ -224,9 +229,6 @@ useEffect(()=>{
 
 const token = Cookies.get('access_token')
 
-useEffect(()=> {
-  console.log(options.locations,'location options')
-},[options])
 
 
 
@@ -276,15 +278,8 @@ const handleSubmit = async(e:any) => {
 // package data
 
 
-// listing package 
-const [packageList, setPackageList] = useState<AddPackageFormData[]>([])
-const fetchList = async() => {
-  const res =  axios.get(`${baseUrl}/packages/all-packages`).then(res => setPackageList(res.data.data)).catch(err => console.log(err))
-}
-useEffect(()=>{
-fetchList()
-},[])
-//listing packages 
+
+
 
 // view single package 
 
@@ -301,14 +296,12 @@ const handleView = async (id: string) => {
   }
 }
 
-useEffect(()=>{
-  console.log(viewPackage,'...view...')
-},[viewPackage])
+
 // view single package 
 
 
 //edit Package
-const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
+
 const handleFetchCurrentData = async () => {
 
   if (selectedPackage) {
@@ -345,33 +338,61 @@ const handlePackageDelete = async (id:string) =>{
 // delete package 
 
 
- // Sample doctors data
- const doctors = [
-  { id: 1, name: "Dr. Smith", specialty: "General Medicine" },
-  { id: 2, name: "Dr. Wilson", specialty: "Cardiology" },
-  { id: 3, name: "Dr. Brown", specialty: "Pediatrics" },
-]
+ const [filterOptions, setFilterOptions] = useState<any>({
+  category: 'all',
+  status: 'all'
+ })
+
+ const [searchQuery, setSearchQuery] = useState('')
+ const [debouncedSearchQuery] = useDebounce(searchQuery, 300)
+
+
+
+ const handleFilterChange = (e:any) => {
+  const { name, value } = e.target
+  setFilterOptions((prev: any)=> ( {...prev, [name]: value}))
+ }
+
+
 
   const [date, setDate] = useState<Date | undefined>(new Date())
-  const [searchQuery, setSearchQuery] = useState("")
+  // const [searchQuery, setSearchQuery] = useState("")
   const [selectedDoctor, setSelectedDoctor] = useState<string | undefined>("all")
   const [selectedStatus, setSelectedStatus] = useState<string | undefined>("all")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
 
   // Filter appointments based on search query, selected date, doctor, and status
-  const filteredAppointments = appointments.filter((appointment) => {
-    const matchesSearch =
-      appointment.patient.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      appointment.doctor.toLowerCase().includes(searchQuery.toLowerCase())
+  // const filteredAppointments = appointments.filter((appointment) => {
+  //   const matchesSearch =
+  //     appointment.patient.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //     appointment.doctor.toLowerCase().includes(searchQuery.toLowerCase())
 
-    const matchesDate = date ? appointment.date === date.toISOString().split("T")[0] : true
+  //   const matchesDate = date ? appointment.date === date.toISOString().split("T")[0] : true
 
-    const matchesDoctor = selectedDoctor && selectedDoctor !== "all" ? appointment.doctor === selectedDoctor : true
+  //   const matchesDoctor = selectedDoctor && selectedDoctor !== "all" ? appointment.doctor === selectedDoctor : true
 
-    const matchesStatus = selectedStatus && selectedStatus !== "all" ? appointment.status === selectedStatus : true
+  //   const matchesStatus = selectedStatus && selectedStatus !== "all" ? appointment.status === selectedStatus : true
 
-    return matchesSearch && matchesDate && matchesDoctor && matchesStatus
-  })
+  //   return matchesSearch && matchesDate && matchesDoctor && matchesStatus
+  // })
+
+
+// listing package 
+const [packageList, setPackageList] = useState<AddPackageFormData[]>([])
+const fetchList = async() => {
+  const res =  axios.get(`${baseUrl}/packages/all-packages`, {
+    params: {
+      searchQuery: debouncedSearchQuery,
+      ...filterOptions
+    }
+  }).then(res => setPackageList(res.data.data)).catch(err => console.log(err))
+}
+//listing packages 
+
+useEffect(()=>{
+
+  fetchList()
+},[debouncedSearchQuery, filterOptions])
 
   return (
     <div className="space-y-4">
@@ -609,28 +630,27 @@ const handlePackageDelete = async (id:string) =>{
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row">
-                  <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
+                  <Select value={filterOptions.category} onValueChange={(val)=> handleFilterChange({target: { name: 'category', value: val}})}>
                     <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="All Doctors" />
+                      <SelectValue placeholder="All Categories" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Doctors</SelectItem>
-                      {doctors.map((doctor) => (
-                        <SelectItem key={doctor.id} value={doctor.name}>
-                          {doctor.name}
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {options.category.map((cat) => (
+                        <SelectItem key={cat._id} value={cat._id}>
+                          {cat.title}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <Select value={filterOptions.status} onValueChange={(val)=> handleFilterChange({ target: { name: 'status', value: val}})}>
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="All Statuses" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="Confirmed">Confirmed</SelectItem>
-                      <SelectItem value="Pending">Pending</SelectItem>
-                      <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button variant="outline" size="icon">
@@ -693,6 +713,11 @@ const handlePackageDelete = async (id:string) =>{
                                   View
                                 </Button>
                                 <Button variant="ghost" size="sm" onClick={()=> setSelectedPackage(item._id)}>
+
+                                {/* //item._id is the ID of the package shown in that row.
+                                //setSelectedPackage(item._id) updates the state → now selectedPackage contains that _id. */}
+
+
                                   Edit
                                 </Button>
                                 <Button variant="ghost" size="sm" onClick={()=> handlePackageDelete(item._id)}>
@@ -709,108 +734,7 @@ const handlePackageDelete = async (id:string) =>{
               </div>
             </div>
           </div>
-        </TabsContent>
-        {/* <TabsContent value="calendar" className="space-y-4">
-          <div className="flex flex-col gap-4 md:flex-row">
-            <div className="md:w-[300px]">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Calendar</CardTitle>
-                  <CardDescription>Select a date to view appointments</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Calendar mode="single" selected={date} onSelect={setDate} className="rounded-md border" />
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline" className="w-full" onClick={() => setDate(new Date())}>
-                    Today
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
-            <div className="flex-1">
-              <Card>
-                <CardHeader>
-                  <CardTitle>
-                    {date
-                      ? date.toLocaleDateString("en-US", {
-                          weekday: "long",
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })
-                      : "All Appointments"}
-                  </CardTitle>
-                  <CardDescription>{filteredAppointments.length} appointments scheduled</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {filteredAppointments.length === 0 ? (
-                      <div className="flex h-[300px] items-center justify-center rounded-md border border-dashed">
-                        <div className="text-center">
-                          <h3 className="text-lg font-medium">No appointments found</h3>
-                          <p className="text-sm text-muted-foreground">
-                            There are no appointments scheduled for this date.
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      filteredAppointments.map((appointment) => (
-                        <div key={appointment.id} className="flex items-center justify-between rounded-lg border p-4">
-                          <div className="grid gap-1">
-                            <div className="font-medium">{appointment.patient}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {appointment.doctor} • {appointment.type}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-right">
-                              <div className="flex items-center">
-                                <Clock className="mr-1 h-4 w-4 text-muted-foreground" />
-                                <span>{appointment.time}</span>
-                              </div>
-                              <Badge
-                                variant={
-                                  appointment.status === "Confirmed"
-                                    ? "default"
-                                    : appointment.status === "Pending"
-                                      ? "outline"
-                                      : "destructive"
-                                }
-                                className="mt-1"
-                              >
-                                {appointment.status}
-                              </Badge>
-                            </div>
-                            <Button variant="ghost" size="icon">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="h-4 w-4"
-                              >
-                                <circle cx="12" cy="12" r="1" />
-                                <circle cx="19" cy="12" r="1" />
-                                <circle cx="5" cy="12" r="1" />
-                              </svg>
-                              <span className="sr-only">More</span>
-                            </Button>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent> */}
+        </TabsContent>      
       </Tabs>
            
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
