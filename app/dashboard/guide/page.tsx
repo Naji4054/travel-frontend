@@ -143,8 +143,18 @@ const token = Cookies.get('access_token')
 
 export default function Guides() {
  
+  //reset form
+const resetForm = () =>{
+setGuides(defaultGuide);
+setSelectedGuide(null);
+setFormLoading(false);
+}
+
+
   //add guides 
 const [guides, setGuides] = useState<guideData>(defaultGuide)
+const [selectedGuide, setSelectedGuide] = useState<string | null>(null)
+const [formLoading, setFormLoading] = useState(false)
 
 const handleInputChange = (e:any) => {
   const {name, value} = e.target
@@ -153,16 +163,49 @@ const handleInputChange = (e:any) => {
 }
 
 const handleSubmit = async (e:any)=> {
-  const res = await axios.post(`${baseUrl}/guides/add-guide`,guides,{ 
-    headers : {
-      "Authorization":`Bearer ${token}`
-    }
-  }).then(res=> console.log(res.data,'submit adding guide')).catch(err=> console.log(err))
-  // setIsAddDialogOpen(false)
-}
 
+  if (selectedGuide) {
+    const res = await axios.patch(`${baseUrl}/guides/update-guide/${selectedGuide}`,guides,{
+      headers : {
+        "Authorization":`Bearer ${token}`
+      }
+    })
+  } else {
+    const res = await axios.post(`${baseUrl}/guides/add-guide`,guides,{ 
+      headers : {
+        "Authorization":`Bearer ${token}`
+      }
+    }).then(res=> console.log(res.data,'submit adding guide')).catch(err=> console.log(err))
+    
+  }
+  setIsAddDialogOpen(false)
+}
   //add guides
 
+  //update guide
+  const handleFetchCurrentData = async() =>{
+    if (selectedGuide) {
+    
+      setFormLoading(true)
+      
+        const res = await axios.get(`${baseUrl}/guides/view-guide/${selectedGuide}`,{ 
+          headers : {
+            "Authorization":`Bearer ${token}`
+          }
+        }).then(res=> {
+          setGuides(res.data.data)
+          setFormLoading(false)
+        }).catch(err=> {
+          console.log(err)
+        }).finally(()=> setFormLoading(false))
+      
+    }
+  }
+  useEffect(()=> {
+    if (selectedGuide)
+      setIsAddDialogOpen(true)
+      handleFetchCurrentData()
+  }, [selectedGuide])
 
 //listing packages 
   const [guideList, setGuideList] = useState<guideData[]>([])
@@ -176,8 +219,30 @@ const handleSubmit = async (e:any)=> {
 
   useEffect(()=> {
   fetchList()
-  },[guideList])
+  },[])
+
+  useEffect(()=> {
+    console.log(guideList, 'resldta')
+  }, [guideList])
 //listing packages 
+
+// view single guide
+
+const [viewGuide, setViewGuide] = useState<guideData>()
+const [viewOpen, setViewOpen] = useState(false)
+
+const handleView = async (id: string) => {
+  try {
+    const res = await axios.get(`${baseUrl}/guides/view-guide/${id}`)
+    setViewGuide(res.data.data)
+    setViewOpen(true)
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+
+// view single package 
 
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -205,8 +270,17 @@ const handleSubmit = async (e:any)=> {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Travel Guides</h2>
-        <form action="">
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        
+        {
+          formLoading && <div>Loading...</div>
+        }
+        {
+          !formLoading && (
+            <form action="">
+        <Dialog open={isAddDialogOpen} onOpenChange={(open)=> {
+          setIsAddDialogOpen(open)
+          if(!open) resetForm()
+        }}>
           <DialogTrigger asChild>
             <Button className="bg-teal-600 hover:bg-teal-700">
               <UserPlus className="mr-2 h-4 w-4" />
@@ -223,7 +297,7 @@ const handleSubmit = async (e:any)=> {
                 <Label htmlFor="name" className="text-right">
                   Full Name
                 </Label>
-                <Input name= "name" onChange = {handleInputChange} id="name" placeholder="John Doe" className="col-span-3" />
+                <Input  value={guides.name} name= "name" onChange = {handleInputChange} id="name" placeholder="John Doe" className="col-span-3" />
               </div>
 
               
@@ -231,7 +305,7 @@ const handleSubmit = async (e:any)=> {
                 <Label htmlFor="age" className="text-right">
                   Age
                 </Label>
-                <Input  name= "age" onChange = {handleInputChange} id="age" type="number" placeholder="35" className="col-span-3" />
+                <Input value={guides.age} name= "age" onChange = {handleInputChange} id="age" type="number" placeholder="35" className="col-span-3" />
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
@@ -253,28 +327,28 @@ const handleSubmit = async (e:any)=> {
                 <Label htmlFor="email" className="text-right">
                   Email
                 </Label>
-                <Input name= "email" onChange = {handleInputChange} id="email" type="email" placeholder="john.doe@example.com" className="col-span-3" />
+                <Input value={guides.email} name= "email" onChange = {handleInputChange} id="email" type="email" placeholder="john.doe@example.com" className="col-span-3" />
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="phone" className="text-right">
                   Phone
                 </Label>
-                <Input name= "phone" onChange = {handleInputChange} id="phone" placeholder="+1 (555) 123-4567" className="col-span-3" />
+                <Input value={guides.phone} name= "phone" onChange = {handleInputChange} id="phone" placeholder="+1 (555) 123-4567" className="col-span-3" />
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="location" className="text-right">
                   Location
                 </Label>
-                <Input name= "location" onChange = {handleInputChange} id="location" placeholder=" Calicut, Kerala, India" className="col-span-3" />
+                <Input value={guides.location} name= "location" onChange = {handleInputChange} id="location" placeholder=" Calicut, Kerala, India" className="col-span-3" />
               </div>
               
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="language" className="text-right">
                   Languages
                 </Label>
-                <Input name= "language" onChange = {handleInputChange} id="language" placeholder=" English, Hindi, Malayalam" className="col-span-3" />
+                <Input  value={guides.language} name= "language" onChange = {handleInputChange} id="language" placeholder=" English, Hindi, Malayalam" className="col-span-3" />
               </div>
               
               
@@ -288,7 +362,9 @@ const handleSubmit = async (e:any)=> {
               
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              <Button variant="outline" onClick={() => {setIsAddDialogOpen(false)
+                resetForm()
+              }}>
                 Cancel
               </Button>
               <Button
@@ -296,12 +372,14 @@ const handleSubmit = async (e:any)=> {
                 className="bg-teal-600 hover:bg-teal-700"
                 onClick={handleSubmit}
               >
-                Save Guide
+                { selectedGuide ? 'Save changes' : 'Add Guide' }
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
         </form>
+          )
+        }
       </div>
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList>
@@ -425,7 +503,9 @@ const handleSubmit = async (e:any)=> {
                             <Button variant="ghost" size="sm">
                               View
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                            onClick={()=> setSelectedGuide(guide._id)}
+                            variant="ghost" size="sm">
                               Edit
                             </Button>
                           </div>

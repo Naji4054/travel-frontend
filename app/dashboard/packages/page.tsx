@@ -257,7 +257,7 @@ const handleSubmit = async(e:any) => {
     formData.append("images", file)
    })
 
-  //map and append package data into formdata
+  
 
   if (selectedPackage) {
     const res = await axios.patch(`${baseUrl}/packages/update-packages/${selectedPackage}`,formData,{
@@ -356,25 +356,10 @@ const handlePackageDelete = async (id:string) =>{
 
 
   const [date, setDate] = useState<Date | undefined>(new Date())
-  // const [searchQuery, setSearchQuery] = useState("")
+ 
   const [selectedDoctor, setSelectedDoctor] = useState<string | undefined>("all")
   const [selectedStatus, setSelectedStatus] = useState<string | undefined>("all")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-
-  // Filter appointments based on search query, selected date, doctor, and status
-  // const filteredAppointments = appointments.filter((appointment) => {
-  //   const matchesSearch =
-  //     appointment.patient.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //     appointment.doctor.toLowerCase().includes(searchQuery.toLowerCase())
-
-  //   const matchesDate = date ? appointment.date === date.toISOString().split("T")[0] : true
-
-  //   const matchesDoctor = selectedDoctor && selectedDoctor !== "all" ? appointment.doctor === selectedDoctor : true
-
-  //   const matchesStatus = selectedStatus && selectedStatus !== "all" ? appointment.status === selectedStatus : true
-
-  //   return matchesSearch && matchesDate && matchesDoctor && matchesStatus
-  // })
 
 
 // listing package 
