@@ -25,6 +25,7 @@ import axios from "axios"
 
 
 interface guideData {
+  _id: string
   name: string
   age: string
   gender: string
@@ -127,6 +128,7 @@ const patients = [
 ]
 
 const defaultGuide = {
+  _id:"",
   name:"",
   age:"",
   gender:"",
@@ -160,6 +162,22 @@ const handleSubmit = async (e:any)=> {
 }
 
   //add guides
+
+
+//listing packages 
+  const [guideList, setGuideList] = useState<guideData[]>([])
+  const fetchList = async() => {
+    const res =  axios.get(`${baseUrl}/guides/all-guide`, { 
+      headers : {
+        "Authorization":`Bearer ${token}`
+      }
+    }).then(res => setGuideList(res.data.data)).catch(err => console.log(err))
+  }
+
+  useEffect(()=> {
+  fetchList()
+  },[guideList])
+//listing packages 
 
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -339,59 +357,67 @@ const handleSubmit = async (e:any)=> {
               <table className="w-full caption-bottom text-sm">
                 <thead>
                   <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                    <th className="h-12 px-4 text-left align-middle font-medium">Patient</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Contact</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium">Name</th>
                     <th className="h-12 px-4 text-left align-middle font-medium">Age/Gender</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Last Visit</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Status</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Actions</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium">Contact</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium">Location</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium">Availability</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredPatients.length === 0 ? (
+                  {guideList.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="h-24 text-center">
-                        No patients found.
+                        No Guides found.
                       </td>
                     </tr>
                   ) : (
-                    filteredPatients.map((patient) => (
+                    guideList.map((guide) => (
                       <tr
-                        key={patient.id}
+                        key={guide._id}
                         className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
                       >
                         <td className="p-4 align-middle">
                           <div className="flex items-center gap-3">
                             <Avatar>
                               <AvatarFallback>
-                                {patient.name
+                                {guide.name
                                   .split(" ")
                                   .map((n) => n[0])
                                   .join("")}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{patient.name}</div>
-                              <div className="text-xs text-muted-foreground">ID: {patient.id}</div>
+                              <div className="font-medium">{guide.name}</div>
                             </div>
                           </div>
                         </td>
+
                         <td className="p-4 align-middle">
                           <div className="flex flex-col">
-                            <span>{patient.phone}</span>
-                            <span className="text-xs text-muted-foreground">{patient.email}</span>
+                            <span>{guide.age} years</span>
+                            <span className="text-xs text-muted-foreground">{guide.gender}</span>
                           </div>
                         </td>
+
                         <td className="p-4 align-middle">
                           <div className="flex flex-col">
-                            <span>{patient.age} years</span>
-                            <span className="text-xs text-muted-foreground">{patient.gender}</span>
+                            <span>{guide.email}</span>
+                            <span className="text-xs text-muted-foreground">{guide.phone}</span>
                           </div>
                         </td>
-                        <td className="p-4 align-middle">{new Date(patient.lastVisit).toLocaleDateString()}</td>
+                        
                         <td className="p-4 align-middle">
-                          <Badge variant={patient.status === "Active" ? "default" : "secondary"}>
-                            {patient.status}
+                        <div>
+                              <div className="font-medium">{guide.location}</div>
+                            </div>
+                        </td>
+
+                        <td className="p-4 align-middle">
+                          <Badge variant={
+                                  guide.availability ? 'default': 'outline'
+                                }>
+                            {guide.availability ? 'available' : 'unavailable'}
                           </Badge>
                         </td>
                         <td className="p-4 align-middle">
