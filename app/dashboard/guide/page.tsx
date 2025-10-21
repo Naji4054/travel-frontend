@@ -21,10 +21,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Filter, Search, UserPlus } from "lucide-react"
 import axios from "axios"
+import Link from "next/link"
 
 
 
-interface guideData {
+export interface GuideData {
   _id: string
   name: string
   age: string
@@ -152,7 +153,7 @@ setFormLoading(false);
 
 
   //add guides 
-const [guides, setGuides] = useState<guideData>(defaultGuide)
+const [guides, setGuides] = useState<GuideData>(defaultGuide)
 const [selectedGuide, setSelectedGuide] = useState<string | null>(null)
 const [formLoading, setFormLoading] = useState(false)
 
@@ -208,7 +209,7 @@ const handleSubmit = async (e:any)=> {
   }, [selectedGuide])
 
 //listing packages 
-  const [guideList, setGuideList] = useState<guideData[]>([])
+  const [guideList, setGuideList] = useState<GuideData[]>([])
   const fetchList = async() => {
     const res =  axios.get(`${baseUrl}/guides/all-guide`, { 
       headers : {
@@ -228,7 +229,7 @@ const handleSubmit = async (e:any)=> {
 
 // view single guide
 
-const [viewGuide, setViewGuide] = useState<guideData>()
+const [viewGuide, setViewGuide] = useState<GuideData>()
 const [viewOpen, setViewOpen] = useState(false)
 
 const handleView = async (id: string) => {
@@ -500,9 +501,7 @@ const handleView = async (id: string) => {
                         </td>
                         <td className="p-4 align-middle">
                           <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm">
-                              View
-                            </Button>
+                            <Link href={`/dashboard/guide/${guide._id}`}> View</Link>
                             <Button 
                             onClick={()=> setSelectedGuide(guide._id)}
                             variant="ghost" size="sm">
