@@ -609,10 +609,10 @@ useEffect(()=>{
         </Dialog>
       </div>
       <Tabs defaultValue="list" className="space-y-4">
-        <TabsList>
+        {/* <TabsList>
           <TabsTrigger value="list">List View</TabsTrigger>
           <TabsTrigger value="calendar">Calendar View</TabsTrigger>
-        </TabsList>
+        </TabsList> */}
         <TabsContent value="list" className="space-y-4">
           <div className="flex flex-col gap-4 md:flex-row">
             <div className="flex-1 space-y-4">
@@ -667,12 +667,13 @@ useEffect(()=>{
                     <thead>
 
                       <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                        <th className="h-12 px-4 text-left align-middle font-medium">ID</th>
+                        
                         <th className="h-12 px-4 text-left align-middle font-medium">Package</th>
                         <th className="h-12 px-4 text-left align-middle font-medium">Type</th>
                         <th className="h-12 px-4 text-left align-middle font-medium">Location</th>
                         <th className="h-12 px-4 text-left align-middle font-medium">Price</th>
                         <th className="h-12 px-4 text-left align-middle font-medium">Status</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium">Actions</th>
                       </tr>
 
                     </thead>
@@ -689,7 +690,7 @@ useEffect(()=>{
                             key={item._id}
                             className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
                           >
-                            <td className="p-4 align-middle">{item?._id}</td>
+                            
                             <td className="p-4 align-middle">{item.title}</td>
                             <td className="p-4 align-middle">{item.type}</td>
                             <td className="p-4 align-middle">{item.location.title}</td>

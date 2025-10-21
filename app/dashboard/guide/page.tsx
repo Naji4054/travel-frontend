@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -13,13 +13,27 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import Cookies from 'js-cookie'
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Filter, Search, UserPlus } from "lucide-react"
+import axios from "axios"
 
+
+
+interface guideData {
+  name: string
+  age: string
+  gender: string
+  email: string
+  phone: string
+  location: string
+  language: string
+  availability: boolean
+}
 // Sample patient data
 const patients = [
   {
@@ -112,7 +126,42 @@ const patients = [
   },
 ]
 
-export default function PatientsPage() {
+const defaultGuide = {
+  name:"",
+  age:"",
+  gender:"",
+  email:"",
+  phone:"",
+  location:"",
+  language:"",
+  availability: false
+}
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+const token = Cookies.get('access_token')
+
+export default function Guides() {
+ 
+  //add guides 
+const [guides, setGuides] = useState<guideData>(defaultGuide)
+
+const handleInputChange = (e:any) => {
+  const {name, value} = e.target
+  
+  setGuides((prev: any)=> ({...prev, [name]: value}))
+}
+
+const handleSubmit = async (e:any)=> {
+  const res = await axios.post(`${baseUrl}/guides/add-guide`,guides,{ 
+    headers : {
+      "Authorization":`Bearer ${token}`
+    }
+  }).then(res=> console.log(res.data,'submit adding guide')).catch(err=> console.log(err))
+  // setIsAddDialogOpen(false)
+}
+
+  //add guides
+
+
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedStatus, setSelectedStatus] = useState<string | undefined>("all")
   const [selectedGender, setSelectedGender] = useState<string | undefined>("all")
@@ -132,85 +181,109 @@ export default function PatientsPage() {
     return matchesSearch && matchesStatus && matchesGender
   })
 
+  
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Patients</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Travel Guides</h2>
+        <form action="">
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-teal-600 hover:bg-teal-700">
               <UserPlus className="mr-2 h-4 w-4" />
-              Add Patient
+              Add Guide
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[525px]">
             <DialogHeader>
-              <DialogTitle>Add New Patient</DialogTitle>
-              <DialogDescription>Enter the patient's information below.</DialogDescription>
+              <DialogTitle>Add Guide</DialogTitle>
+              <DialogDescription>Enter the guide's information below.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="name" className="text-right">
                   Full Name
                 </Label>
-                <Input id="name" placeholder="John Doe" className="col-span-3" />
+                <Input name= "name" onChange = {handleInputChange} id="name" placeholder="John Doe" className="col-span-3" />
               </div>
+
+              
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="age" className="text-right">
                   Age
                 </Label>
-                <Input id="age" type="number" placeholder="35" className="col-span-3" />
+                <Input  name= "age" onChange = {handleInputChange} id="age" type="number" placeholder="35" className="col-span-3" />
               </div>
+
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="gender" className="text-right">
                   Gender
                 </Label>
-                <Select>
+                <Select value= {guides.gender} onValueChange={(val)=> handleInputChange ({target: { name: "gender", value: val}})}>
                   <SelectTrigger id="gender" className="col-span-3">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Male">Male</SelectItem>
                     <SelectItem value="Female">Female</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="phone" className="text-right">
-                  Phone
-                </Label>
-                <Input id="phone" placeholder="+1 (555) 123-4567" className="col-span-3" />
-              </div>
+
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="email" className="text-right">
                   Email
                 </Label>
-                <Input id="email" type="email" placeholder="john.doe@example.com" className="col-span-3" />
+                <Input name= "email" onChange = {handleInputChange} id="email" type="email" placeholder="john.doe@example.com" className="col-span-3" />
               </div>
+
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="address" className="text-right">
-                  Address
+                <Label htmlFor="phone" className="text-right">
+                  Phone
                 </Label>
-                <Input id="address" placeholder="123 Main St, Anytown, CA 12345" className="col-span-3" />
+                <Input name= "phone" onChange = {handleInputChange} id="phone" placeholder="+1 (555) 123-4567" className="col-span-3" />
               </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="location" className="text-right">
+                  Location
+                </Label>
+                <Input name= "location" onChange = {handleInputChange} id="location" placeholder=" Calicut, Kerala, India" className="col-span-3" />
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="language" className="text-right">
+                  Languages
+                </Label>
+                <Input name= "language" onChange = {handleInputChange} id="language" placeholder=" English, Hindi, Malayalam" className="col-span-3" />
+              </div>
+              
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="availability" className="text-right">
+                  Availabile
+                </Label>
+                <Input  type ="checkbox" checked = {guides.availability} onChange={(e)=> handleInputChange ({target: { name: "availability", value: e.target.checked}})} className="col-span-3"/>
+              </div>
+
+              
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                 Cancel
               </Button>
               <Button
+                type="submit"
                 className="bg-teal-600 hover:bg-teal-700"
-                onClick={() => {
-                  // In a real app, this would save the patient to the database
-                  setIsAddDialogOpen(false)
-                }}
+                onClick={handleSubmit}
               >
-                Save Patient
+                Save Guide
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </form>
       </div>
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList>

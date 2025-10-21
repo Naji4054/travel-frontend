@@ -17,7 +17,7 @@ import {
   Package,
   PieChart,
   Settings,
-  Users,
+  Map,
   LogOut,
   Pill,
   CreditCard,
@@ -43,7 +43,7 @@ export default function DashboardLayout({
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Packages", href: "/dashboard/packages", icon: Plane },
-    { name: "Patients", href: "/dashboard/patients", icon: Users },
+    { name: "Trip-Guide", href: "/dashboard/guide", icon: Map },
     // { name: "Consultations", href: "/dashboard/consultations", icon: ClipboardList },
     { name: "Pharmacy", href: "/dashboard/pharmacy", icon: Pill },
     { name: "Inventory", href: "/dashboard/inventory", icon: Package },
