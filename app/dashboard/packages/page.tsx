@@ -23,83 +23,7 @@ import { useDebounce } from 'use-debounce';
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
 
-// Sample appointment data
-// const appointments = [
-//   {
-//     id: 1,
-//     patient: "John Doe",
-//     doctor: "Dr. Smith",
-//     date: "2025-05-11",
-//     time: "10:00 AM",
-//     type: "Consultation",
-//     status: "Confirmed",
-//   },
-//   {
-//     id: 2,
-//     patient: "Sarah Johnson",
-//     doctor: "Dr. Wilson",
-//     date: "2025-05-11",
-//     time: "11:30 AM",
-//     type: "Follow-up",
-//     status: "Confirmed",
-//   },
-//   {
-//     id: 3,
-//     patient: "Mike Williams",
-//     doctor: "Dr. Brown",
-//     date: "2025-05-11",
-//     time: "1:00 PM",
-//     type: "Check-up",
-//     status: "Pending",
-//   },
-//   {
-//     id: 4,
-//     patient: "Emily Davis",
-//     doctor: "Dr. Smith",
-//     date: "2025-05-11",
-//     time: "2:30 PM",
-//     type: "Consultation",
-//     status: "Confirmed",
-//   },
-//   {
-//     id: 5,
-//     patient: "Robert Miller",
-//     doctor: "Dr. Wilson",
-//     date: "2025-05-11",
-//     time: "4:00 PM",
-//     type: "Follow-up",
-//     status: "Cancelled",
-//   },
-//   {
-//     id: 6,
-//     patient: "Jennifer Lee",
-//     doctor: "Dr. Brown",
-//     date: "2025-05-12",
-//     time: "9:00 AM",
-//     type: "Consultation",
-//     status: "Confirmed",
-//   },
-//   {
-//     id: 7,
-//     patient: "David Wilson",
-//     doctor: "Dr. Smith",
-//     date: "2025-05-12",
-//     time: "10:30 AM",
-//     type: "Check-up",
-//     status: "Confirmed",
-//   },
-//   {
-//     id: 8,
-//     patient: "Lisa Anderson",
-//     doctor: "Dr. Wilson",
-//     date: "2025-05-12",
-//     time: "1:00 PM",
-//     type: "Follow-up",
-//     status: "Pending",
-//   },
-// ]
 
-// 
 interface AddPackageFormData {
   _id: string;
   title : string
@@ -352,10 +276,6 @@ const handlePackageDelete = async (id:string) =>{
 
 
 
-  const [date, setDate] = useState<Date | undefined>(new Date())
- 
-  const [selectedDoctor, setSelectedDoctor] = useState<string | undefined>("all")
-  const [selectedStatus, setSelectedStatus] = useState<string | undefined>("all")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
 
 
@@ -582,21 +502,14 @@ useEffect(()=>{
           </form>
             )
           }
-
-
-            <DialogFooter>
-              
+            <DialogFooter>   
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
-      <Tabs defaultValue="list" className="space-y-4">
-        {/* <TabsList>
-          <TabsTrigger value="list">List View</TabsTrigger>
-          <TabsTrigger value="calendar">Calendar View</TabsTrigger>
-        </TabsList> */}
-        <TabsContent value="list" className="space-y-4">
-          <div className="flex flex-col gap-4 md:flex-row">
+
+    <>
+      <div className="flex flex-col gap-4 md:flex-row">
             <div className="flex-1 space-y-4">
               <div className="flex flex-col gap-4 md:flex-row">
                 <div className="flex-1">
@@ -716,10 +629,9 @@ useEffect(()=>{
                 </div>
               </div>
             </div>
-          </div>
-        </TabsContent>      
-      </Tabs>
-           
+      </div>
+    </>
+      
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>

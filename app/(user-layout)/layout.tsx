@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@radix-ui/react-select'
 import Link from 'next/link'
 import React from 'react'
 
@@ -37,6 +38,9 @@ const UserLayout = ({children}: any) => {
             </Link>
             <Link href="/about" className="text-sm font-medium">
               About
+            </Link>
+            <Link href="/allPackage" className="text-sm font-medium">
+              All Packages
             </Link>
           </nav>
           <div className="flex items-center gap-4">

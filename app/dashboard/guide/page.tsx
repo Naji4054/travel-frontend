@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -16,7 +15,6 @@ import { Input } from "@/components/ui/input"
 import Cookies from 'js-cookie'
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Filter, Search, UserPlus } from "lucide-react"
@@ -36,97 +34,6 @@ export interface GuideData {
   language: string
   availability: boolean
 }
-// Sample patient data
-const patients = [
-  {
-    id: 1,
-    name: "John Doe",
-    age: 45,
-    gender: "Male",
-    phone: "+1 (555) 123-4567",
-    email: "john.doe@example.com",
-    address: "123 Main St, Anytown, CA 12345",
-    lastVisit: "2025-05-01",
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "Sarah Johnson",
-    age: 32,
-    gender: "Female",
-    phone: "+1 (555) 234-5678",
-    email: "sarah.johnson@example.com",
-    address: "456 Oak Ave, Somewhere, CA 12345",
-    lastVisit: "2025-04-28",
-    status: "Active",
-  },
-  {
-    id: 3,
-    name: "Mike Williams",
-    age: 28,
-    gender: "Male",
-    phone: "+1 (555) 345-6789",
-    email: "mike.williams@example.com",
-    address: "789 Pine St, Nowhere, CA 12345",
-    lastVisit: "2025-04-15",
-    status: "Inactive",
-  },
-  {
-    id: 4,
-    name: "Emily Davis",
-    age: 52,
-    gender: "Female",
-    phone: "+1 (555) 456-7890",
-    email: "emily.davis@example.com",
-    address: "101 Elm St, Anywhere, CA 12345",
-    lastVisit: "2025-05-05",
-    status: "Active",
-  },
-  {
-    id: 5,
-    name: "Robert Miller",
-    age: 67,
-    gender: "Male",
-    phone: "+1 (555) 567-8901",
-    email: "robert.miller@example.com",
-    address: "202 Maple Ave, Everywhere, CA 12345",
-    lastVisit: "2025-03-20",
-    status: "Active",
-  },
-  {
-    id: 6,
-    name: "Jennifer Lee",
-    age: 41,
-    gender: "Female",
-    phone: "+1 (555) 678-9012",
-    email: "jennifer.lee@example.com",
-    address: "303 Cedar St, Somewhere, CA 12345",
-    lastVisit: "2025-04-10",
-    status: "Active",
-  },
-  {
-    id: 7,
-    name: "David Wilson",
-    age: 35,
-    gender: "Male",
-    phone: "+1 (555) 789-0123",
-    email: "david.wilson@example.com",
-    address: "404 Birch Ave, Anywhere, CA 12345",
-    lastVisit: "2025-05-03",
-    status: "Active",
-  },
-  {
-    id: 8,
-    name: "Lisa Anderson",
-    age: 29,
-    gender: "Female",
-    phone: "+1 (555) 890-1234",
-    email: "lisa.anderson@example.com",
-    address: "505 Walnut St, Nowhere, CA 12345",
-    lastVisit: "2025-04-22",
-    status: "Inactive",
-  },
-]
 
 const defaultGuide = {
   _id:"",
@@ -243,25 +150,8 @@ const handleFilterChange = (e:any) => {
 const { name, value } = e.target
 setFilterOptions((prev:any) => ({ ...prev, [name]:value }))
 }
-  const [selectedStatus, setSelectedStatus] = useState<string | undefined>("all")
-  const [selectedGender, setSelectedGender] = useState<string | undefined>("all")
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-
-  // Filter patients based on search query, status, and gender
-  const filteredPatients = patients.filter((patient) => {
-    const matchesSearch =
-      patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      patient.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      patient.phone.includes(searchQuery)
-
-    const matchesStatus = selectedStatus && selectedStatus !== "all" ? patient.status === selectedStatus : true
-
-    const matchesGender = selectedGender && selectedGender !== "all" ? patient.gender === selectedGender : true
-
-    return matchesSearch && matchesStatus && matchesGender
-  })
-
   
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
 
   return (
     <div className="space-y-4">
@@ -378,15 +268,8 @@ setFilterOptions((prev:any) => ({ ...prev, [name]:value }))
           )
         }
       </div>
-      <Tabs defaultValue="all" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="all">All Patients</TabsTrigger>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="inactive">Inactive</TabsTrigger>
-          <TabsTrigger value="recent">Recent Visits</TabsTrigger>
-        </TabsList>
-        <TabsContent value="all" className="space-y-4">
-          <div className="flex flex-col gap-4 md:flex-row">
+      <>
+      <div className="flex flex-col gap-4 md:flex-row">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -511,139 +394,8 @@ setFilterOptions((prev:any) => ({ ...prev, [name]:value }))
               </table>
             </div>
           </div>
-        </TabsContent>
-        <TabsContent value="active" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Active Patients</CardTitle>
-              <CardDescription>Patients who are currently active in the system.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {patients
-                  .filter((patient) => patient.status === "Active")
-                  .map((patient) => (
-                    <div key={patient.id} className="flex items-center justify-between rounded-lg border p-4">
-                      <div className="flex items-center gap-4">
-                        <Avatar>
-                          <AvatarFallback>
-                            {patient.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{patient.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {patient.age} years • {patient.gender}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
-                          View Profile
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          Schedule
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="inactive" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Inactive Patients</CardTitle>
-              <CardDescription>Patients who are currently inactive in the system.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {patients
-                  .filter((patient) => patient.status === "Inactive")
-                  .map((patient) => (
-                    <div key={patient.id} className="flex items-center justify-between rounded-lg border p-4">
-                      <div className="flex items-center gap-4">
-                        <Avatar>
-                          <AvatarFallback>
-                            {patient.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{patient.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {patient.age} years • {patient.gender}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
-                          View Profile
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          Activate
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="recent" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Visits</CardTitle>
-              <CardDescription>Patients who visited in the last 30 days.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {patients
-                  .filter((patient) => {
-                    const lastVisit = new Date(patient.lastVisit)
-                    const thirtyDaysAgo = new Date()
-                    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-                    return lastVisit >= thirtyDaysAgo
-                  })
-                  .map((patient) => (
-                    <div key={patient.id} className="flex items-center justify-between rounded-lg border p-4">
-                      <div className="flex items-center gap-4">
-                        <Avatar>
-                          <AvatarFallback>
-                            {patient.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{patient.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            Last visit: {new Date(patient.lastVisit).toLocaleDateString()}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
-                          View Profile
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          Schedule Follow-up
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      </>
+     
     </div>
   )
 }
