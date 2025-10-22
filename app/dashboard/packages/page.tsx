@@ -2,8 +2,6 @@
 import Cookies from 'js-cookie'
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -21,7 +19,6 @@ import { Badge } from "@/components/ui/badge"
 import { CalendarPlus, Clock, Filter, Search } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import axios from "axios"
-import { object } from 'joi'
 import { useDebounce } from 'use-debounce';
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL

@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge"
 import { Filter, Search, UserPlus } from "lucide-react"
 import axios from "axios"
 import Link from "next/link"
-
+import { useDebounce } from 'use-debounce';
 
 
 export interface GuideData {
@@ -209,44 +209,40 @@ const handleSubmit = async (e:any)=> {
   }, [selectedGuide])
 
 //listing packages 
+const [searchQuery, setSearchQuery] = useState('')
+ const [debouncedSearchQuery] = useDebounce(searchQuery, 300)
+
+const [filterOptions, setFilterOptions] = useState<any>({
+  gender: "all",
+  availability: "all"
+})
+
   const [guideList, setGuideList] = useState<GuideData[]>([])
   const fetchList = async() => {
     const res =  axios.get(`${baseUrl}/guides/all-guide`, { 
       headers : {
         "Authorization":`Bearer ${token}`
+      },
+      params: {
+        searchQuery: debouncedSearchQuery,
+        ...filterOptions
       }
     }).then(res => setGuideList(res.data.data)).catch(err => console.log(err))
   }
 
   useEffect(()=> {
   fetchList()
-  },[])
+  },[debouncedSearchQuery, filterOptions])
 
-  useEffect(()=> {
-    console.log(guideList, 'resldta')
-  }, [guideList])
 //listing packages 
 
-// view single guide
 
-const [viewGuide, setViewGuide] = useState<GuideData>()
-const [viewOpen, setViewOpen] = useState(false)
+// filter
 
-const handleView = async (id: string) => {
-  try {
-    const res = await axios.get(`${baseUrl}/guides/view-guide/${id}`)
-    setViewGuide(res.data.data)
-    setViewOpen(true)
-  } catch (err) {
-    console.error(err)
-  }
+const handleFilterChange = (e:any) => {
+const { name, value } = e.target
+setFilterOptions((prev:any) => ({ ...prev, [name]:value }))
 }
-
-
-// view single package 
-
-
-  const [searchQuery, setSearchQuery] = useState("")
   const [selectedStatus, setSelectedStatus] = useState<string | undefined>("all")
   const [selectedGender, setSelectedGender] = useState<string | undefined>("all")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -396,7 +392,7 @@ const handleView = async (id: string) => {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search patients..."
+                  placeholder="Search Guides"
                   className="pl-8"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -404,17 +400,17 @@ const handleView = async (id: string) => {
               </div>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <Select value={filterOptions.availability} onValueChange={(val)=>handleFilterChange({target :{name: 'availability', value : val}})}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="All Statuses" />
+                  <SelectValue placeholder="Availability" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Available</SelectItem>
+                  <SelectItem value="inactive">Un-available</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={selectedGender} onValueChange={setSelectedGender}>
+              <Select value={filterOptions.gender} onValueChange={(val)=> handleFilterChange({ target: { name:'gender', value: val }})}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="All Genders" />
                 </SelectTrigger>
@@ -422,7 +418,6 @@ const handleView = async (id: string) => {
                   <SelectItem value="all">All Genders</SelectItem>
                   <SelectItem value="Male">Male</SelectItem>
                   <SelectItem value="Female">Female</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
               <Button variant="outline" size="icon">
