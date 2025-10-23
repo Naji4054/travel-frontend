@@ -22,6 +22,25 @@ interface PackageInfo {
     title: string
   },
 }
+
+const PopularCard  = ({ data } : {data: PackageInfo}) => {
+  const coverImage = data.image.find(img => img.isCover);
+
+
+  return (
+    <div  className="flex flex-col items-center space-y-2 rounded-lg border p-4">
+    <div className="p-2">
+      <img 
+          src={`http://localhost:3000/${coverImage?.url}`}
+          alt={coverImage?.altText}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+        />
+    </div>
+    <h3 className="text-xl font-bold">{data.title}</h3>
+    <p className="text-center text-gray-500 dark:text-gray-400">{data.description}</p>
+  </div>
+  )
+}
 export default async function Home () {
 
   const data = await fetch('http://localhost:3000/api/v1/home/packages')
@@ -118,14 +137,7 @@ export default async function Home () {
                 </div>
                 </div>
                 <div className="mx-auto grid max-w-8xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:grid-cols-4">
-                {packages.map((item:PackageInfo, index:any) => (
-                  
-                  <div key={index} className="flex flex-col items-center space-y-2 rounded-lg border p-4">
-                    {/* <div className="p-2">{feature.icon}</div> */}
-                    <h3 className="text-xl font-bold">{item.title}</h3>
-                    <p className="text-center text-gray-500 dark:text-gray-400">{item.description}</p>
-                  </div>
-                ))}
+                {packages.map((item:PackageInfo, index:any) => <PopularCard data={item} key={index}/>)}
                 </div>
               </div>
         </section>
