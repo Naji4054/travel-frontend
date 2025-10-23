@@ -3,79 +3,11 @@ import React, { useEffect, useState } from 'react';
 import { Clock, Calendar, MapPin, ArrowRight, Search, Filter, X } from 'lucide-react';
 import axios from 'axios';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useDebounce } from 'use-debounce';
 
-// Sample data structure - replace with your actual API data
-const samplePackages = [
-  {
-    id: 1,
-    title: "DANDELI JUNGLE SAFARI",
-    image: "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&h=600&fit=crop",
-    duration: "2 Nights 3 Days",
-    availability: "Available on request",
-    location: "Dandeli, Karnataka",
-    price: null,
-    category: "Adventure",
-    type: "Domestic"
-  },
-  {
-    id: 2,
-    title: "KANHA JUNGLE SAFARI",
-    image: "https://images.unsplash.com/photo-1551969014-7d2c4cddf0b6?w=800&h=600&fit=crop",
-    duration: "2 Nights 3 Days",
-    availability: "Available on request",
-    location: "Madhya Pradesh",
-    price: 11499,
-    category: "Wildlife",
-    type: "Domestic"
-  },
-  {
-    id: 3,
-    title: "BALI BEACH GETAWAY",
-    image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&h=600&fit=crop",
-    duration: "5 Nights 6 Days",
-    availability: "Available on request",
-    location: "Bali, Indonesia",
-    price: 45999,
-    category: "Beach",
-    type: "International"
-  },
-  {
-    id: 4,
-    title: "GOA GROUP TOUR",
-    image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&h=600&fit=crop",
-    duration: "3 Nights 4 Days",
-    availability: "Available on request",
-    location: "Goa, India",
-    price: 8999,
-    category: "Beach",
-    type: "Group"
-  },
-  {
-    id: 5,
-    title: "HIMALAYAN TREK",
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
-    duration: "7 Nights 8 Days",
-    availability: "Available on request",
-    location: "Himachal Pradesh",
-    price: 18999,
-    category: "Adventure",
-    type: "Domestic"
-  },
-  {
-    id: 6,
-    title: "DUBAI LUXURY ESCAPE",
-    image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&h=600&fit=crop",
-    duration: "4 Nights 5 Days",
-    availability: "Available on request",
-    location: "Dubai, UAE",
-    price: 55999,
-    category: "Luxury",
-    type: "International"
-  }
-];
+
 
 // Categories and Types for filters
-const categories = ["All", "Adventure", "Wildlife", "Beach", "Luxury", "Cultural", "Honeymoon"];
 const types = ["All", "Domestic", "International", "Group"];
 
 
@@ -180,9 +112,14 @@ const TravelPackagesGrid = () => {
   const [selectedType, setSelectedType] = useState('All');
   const [showFilters, setShowFilters] = useState(false);
   const [hasActiveFilters, setActiveFilter] = useState(false)
+
+  const [debouncedSearchQuery] = useDebounce(searchQuery, 300)
   
   const clearFilters = () => {
-
+    const params = new URLSearchParams(searchParams);
+    params.delete('category'); 
+    params.delete('type'); 
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   // Filter packages based on search and filters
@@ -196,19 +133,24 @@ const TravelPackagesGrid = () => {
 // set 
   const categoryValue = searchParams.get('category')
   const typeValue = searchParams.get('type')
+  
 
   
   const [totalCount, setTotalCount] = useState(0)
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+
   const fetchPackage = async () => {
     const res = await axios.get(`${baseUrl}/packages/all-packages`, {
         params: {
             category: categoryValue,
-            type: typeValue
+            type: typeValue,
+            searchQuery : debouncedSearchQuery
+
         }
     })
     .then(res=> {
+      console.log(res.data.totalCount,'total countt')
         SetPackageList(res.data.data)
         setTotalCount(res.data.totalCount)
     }).
@@ -240,6 +182,7 @@ const TravelPackagesGrid = () => {
   }
 
   
+  
 
   const [options, setOptions] = useState<Options>({
     category: [],
@@ -258,11 +201,18 @@ const TravelPackagesGrid = () => {
     })
   }
 
+  useEffect(()=> {
+    fetchOptions()
+  }, [])
 
   useEffect (()=>{
     fetchPackage()
-    fetchOptions()
-  },[typeValue, categoryValue ])
+    
+  },[typeValue, categoryValue, debouncedSearchQuery])
+
+  useEffect(()=> {
+    console.log(debouncedSearchQuery, '----deb----')
+  }, [debouncedSearchQuery])
 
 
   return (
@@ -311,7 +261,7 @@ const TravelPackagesGrid = () => {
                     key={category._id}
                     onClick={() => handleCategoryFilter(category.title === 'All' ? null : category._id)}
                     className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
-                      selectedCategory === category
+                      categoryValue === category._id
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
@@ -331,7 +281,7 @@ const TravelPackagesGrid = () => {
                     key={type}
                     onClick={() => handleTypeFilter( type ==='All'? null : type)}
                     className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
-                      selectedType === type
+                       typeValue === type 
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
@@ -356,22 +306,32 @@ const TravelPackagesGrid = () => {
         </div>
 
         {/* Cards Grid - Responsive: 1 col mobile, 2 cols medium, 3 cols large */}
+        
         {totalCount > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {packageList.map((pkg) => (
-              <TravelPackageCard key={pkg._id} pkg={pkg} />
-            ))}
+            {
+              packageList.length > 0 && (
+                packageList.map((pkg) => (
+                  <TravelPackageCard key={pkg._id} pkg={pkg} />
+                ))
+              )
+            }
+            {
+              packageList.length <= 0 && <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">No packages found matching your criteria</p>
+              <button
+                onClick={clearFilters}
+                className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Clear filters
+              </button>
+            </div>
+            }
           </div>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No packages found matching your criteria</p>
-            <button
-              onClick={clearFilters}
-              className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Clear filters
-            </button>
-          </div>
+         <div>
+          No Packages found in database
+         </div>
         )}
       </div>
     </div>
