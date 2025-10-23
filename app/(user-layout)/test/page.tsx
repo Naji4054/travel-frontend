@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Clock, Calendar, MapPin, ArrowRight, Search, Filter, X } from 'lucide-react';
 import axios from 'axios';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 // Sample data structure - replace with your actual API data
 const samplePackages = [
@@ -101,6 +101,10 @@ interface PackageInfo {
       title: string
     },
 }
+interface Options {
+  category: { title: string; _id: string }[],
+  locations: { title: string; _id: string }[]
+}
 
 const TravelPackageCard = ({ pkg }: {pkg: PackageInfo}) => {
     const coverImage = pkg.image.find(img => img.isCover);
@@ -175,52 +179,90 @@ const TravelPackagesGrid = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
   const [showFilters, setShowFilters] = useState(false);
+  const [hasActiveFilters, setActiveFilter] = useState(false)
+  
+  const clearFilters = () => {
+
+  }
 
   // Filter packages based on search and filters
-  const filteredPackages = [1,2]
-//   const filteredPackages = samplePackages.filter(pkg => {
-//     const matchesSearch = pkg.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//                          pkg.location.toLowerCase().includes(searchQuery.toLowerCase());
-//     const matchesCategory = selectedCategory === 'All' || pkg.category === selectedCategory;
-//     const matchesType = selectedType === 'All' || pkg.type === selectedType;
-    
-//     return matchesSearch && matchesCategory && matchesType;
-//   });
-
-  const clearFilters = () => {
-    setSearchQuery('');
-    setSelectedCategory('All');
-    setSelectedType('All');
-  };
-
-  const hasActiveFilters = searchQuery || selectedCategory !== 'All' || selectedType !== 'All';
-
+  const router = useRouter()
+  const pathname = usePathname()
+  
   const [packageList, SetPackageList ] = useState<PackageInfo[]>([])
 
   const searchParams = useSearchParams()
- 
-  const search = searchParams.get('category')
+
+// set 
+  const categoryValue = searchParams.get('category')
+  const typeValue = searchParams.get('type')
+
+  
+  const [totalCount, setTotalCount] = useState(0)
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
   const fetchPackage = async () => {
     const res = await axios.get(`${baseUrl}/packages/all-packages`, {
         params: {
-            category: search
+            category: categoryValue,
+            type: typeValue
         }
     })
     .then(res=> {
-        console.log(res.data.data)
         SetPackageList(res.data.data)
+        setTotalCount(res.data.totalCount)
     }).
     catch(err=>console.error(err))
   }
 
 
 
+  
+  const handleCategoryFilter = (val: string | null) => {
+    const params = new URLSearchParams(searchParams);
+    if (val) {
+      params.set('category', val);
+    } else {
+      params.delete('category'); 
+    }
+    router.replace(`${pathname}?${params.toString()}`);
+  }
+
+
+  const handleTypeFilter = (val: string | null ) =>  {
+    const params = new URLSearchParams(searchParams);
+    if(val){
+      params.set('type', val)
+    } else {
+      params.delete('type')
+    }
+    router.replace(`${pathname}?${params.toString()}`)
+  }
+
+  
+
+  const [options, setOptions] = useState<Options>({
+    category: [],
+    locations: []
+  })
+  const fetchOptions = async()=> {
+  
+    await axios.get(`${baseUrl}/packages/add-options`).then(res=> {
+      console.log(res.data.data, '---res data-----')                                           
+       // res.data =={
+      //   category: [{_id: "123", title: "Domestic"}, {_id: "124", title: "International"}],
+      //   locations: [{_id: "201", title: "Goa"}, {_id: "202", title: "Paris"}] }
+      setOptions(res.data.data)
+    }).catch(err=> {
+      console.error(err?.message)
+    })
+  }
+
 
   useEffect (()=>{
     fetchPackage()
-  },[packageList, search])
+    fetchOptions()
+  },[typeValue, categoryValue ])
 
 
   return (
@@ -230,7 +272,7 @@ const TravelPackagesGrid = () => {
         <div className="mb-6 sm:mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-2">Our Packages</h1>
           <p className="text-gray-600 text-sm sm:text-base">
-            Showing {filteredPackages.length} of {samplePackages.length} trips
+            Showing {packageList.length} of {totalCount}  trips
           </p>
         </div>
 
@@ -261,19 +303,20 @@ const TravelPackagesGrid = () => {
           <div className={`${showFilters ? 'block' : 'hidden'} lg:block space-y-4`}>
             {/* Category Filter */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Category listing</label>
               <div className="flex flex-wrap gap-2">
-                {categories.map(category => (
+                
+                {[{_id: null, title: 'All'}, ...options.category].map((category:any) => (
                   <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
+                    key={category._id}
+                    onClick={() => handleCategoryFilter(category.title === 'All' ? null : category._id)}
                     className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
                       selectedCategory === category
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    {category}
+                    {category.title}
                   </button>
                 ))}
               </div>
@@ -286,7 +329,7 @@ const TravelPackagesGrid = () => {
                 {types.map(type => (
                   <button
                     key={type}
-                    onClick={() => setSelectedType(type)}
+                    onClick={() => handleTypeFilter( type ==='All'? null : type)}
                     className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
                       selectedType === type
                         ? 'bg-blue-600 text-white'
@@ -313,7 +356,7 @@ const TravelPackagesGrid = () => {
         </div>
 
         {/* Cards Grid - Responsive: 1 col mobile, 2 cols medium, 3 cols large */}
-        {filteredPackages.length > 0 ? (
+        {totalCount > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {packageList.map((pkg) => (
               <TravelPackageCard key={pkg._id} pkg={pkg} />
