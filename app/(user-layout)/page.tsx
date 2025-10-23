@@ -1,5 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { categoryImages } from "@/components/categoryImages";
+
 interface PackageInfo {
   _id: string;
   title : string
@@ -28,17 +30,45 @@ const PopularCard  = ({ data } : {data: PackageInfo}) => {
 
 
   return (
-    <div  className="flex flex-col items-center space-y-2 rounded-lg border p-4">
-    <div className="p-2">
-      <img 
-          src={`http://localhost:3000/${coverImage?.url}`}
-          alt={coverImage?.altText}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-        />
+    <div className="group flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700">
+  <div className="relative overflow-hidden h-64 bg-gray-200 dark:bg-gray-700">
+    <img 
+      src={`http://localhost:3000/${coverImage?.url}`}
+      alt={coverImage?.altText}
+      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+    />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+    <div className="absolute bottom-0 left-0 right-0 p-6">
+      <h3 className="text-3xl font-bold text-white">
+        {data.title}
+      </h3>
     </div>
-    <h3 className="text-xl font-bold">{data.title}</h3>
-    <p className="text-center text-gray-500 dark:text-gray-400">{data.description}</p>
   </div>
+  
+  <div className="p-5 bg-white dark:bg-gray-800">
+    <div className="mb-3">
+      <span className="text-2xl font-bold text-gray-900 dark:text-white">
+        ₹ {data.price}
+      </span>
+    </div>
+    
+    <div className="flex items-center gap-2 text-base mb-3">
+      <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+      </svg>
+      <span className="text-gray-800 dark:text-gray-200 font-medium">
+        {data.duration}
+      </span>
+    </div>
+    
+    <div className="flex items-center gap-2 text-base text-gray-600 dark:text-gray-400">
+      <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+      </svg>
+      <span>Available on request</span>
+    </div>
+  </div>
+</div>
   )
 }
 export default async function Home () {
@@ -104,14 +134,39 @@ export default async function Home () {
               </div>
             </div>
             <div className="mx-auto grid max-w-8xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:grid-cols-3">
-              {categories.map((cat: any, index: any) => (
-                <div key={index} className="flex flex-col items-center space-y-2 rounded-lg border p-4">
-                  {/* <div className="p-2">{feature.icon}</div> */}
-                  <h3 className="text-xl font-bold">{cat.title}</h3>
-                  <p className="text-center text-gray-500 dark:text-gray-400">{cat._id}</p>
-                </div>
-              ))}
-            </div>
+  {categories.map((cat: any, index: any) => (
+    <div
+      key={index}
+      className="relative group overflow-hidden rounded-lg shadow-lg cursor-pointer"
+    >
+      {/* Background Image */}
+      <img
+        src={categoryImages[cat._id as keyof typeof categoryImages]}
+        alt={cat.title}
+       className="w-full h-64 object-cover transition-transform duration-700 group-hover:scale-110"
+      />
+
+      {/* Dark Overlay on Hover */}
+      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/70 transition-all duration-500"></div>
+
+      {/* Category Title (Visible Initially) */}
+      <div className="absolute inset-0 flex items-center justify-center transition-all duration-500 group-hover:opacity-0">
+      <h3 className="absolute left-4 bottom-4 text-white text-xl font-bold">
+          {cat.title}
+        </h3>
+      </div>
+
+      {/* Hover Content (Visible on Hover) */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <p className="text-white text-lg mb-3">STARTING FROM ₹6,999</p>
+        <button className="px-6 py-2 text-sm font-semibold uppercase tracking-wider bg-white text-gray-900 rounded-md shadow-md hover:bg-gray-100 transition-all">
+          View Packages
+        </button>
+      </div>
+    </div>
+  ))}
+</div>
+
           </div>
         </section>
         <section id="motto">
