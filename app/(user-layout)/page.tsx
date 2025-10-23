@@ -1,7 +1,38 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+interface PackageInfo {
+  _id: string;
+  title : string
+  description : string,
+  duration: string,
+  type: string,
+  category: {
+    _id: string;
+    title: string
+  },
+  image:{
+    url: string,
+    altText: string
+    isCover: string
+  }[],
+  status: string,
+  price: string,
+  location: {
+    _id: string
+    title: string
+  },
+}
+export default async function Home () {
 
-export default function Home() {
+  const data = await fetch('http://localhost:3000/api/v1/home/packages')
+  const res = await data.json()
+  const packages = res.data.packages
+  const categories = res.data.category
+
+  // const pkg =({item} : {item: PackageInfo}) => {
+  //   const coverImage = item.image.find(img => img.isCover);
+  // }
+
   return (
     
       <main className="flex-1">
@@ -54,93 +85,11 @@ export default function Home() {
               </div>
             </div>
             <div className="mx-auto grid max-w-8xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:grid-cols-3">
-              {[
-                {
-                  _id:"68f06c1994602845961cae7b",
-                  title: "Wilderness & Adventure",
-                  description: "Manage doctor schedules and patient appointments with ease.",
-                  icon: (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="h-10 w-10 text-teal-600"
-                    >
-                      <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-                      <line x1="16" x2="16" y1="2" y2="6" />
-                      <line x1="8" x2="8" y1="2" y2="6" />
-                      <line x1="3" x2="21" y1="10" y2="10" />
-                      <path d="M8 14h.01" />
-                      <path d="M12 14h.01" />
-                      <path d="M16 14h.01" />
-                      <path d="M8 18h.01" />
-                      <path d="M12 18h.01" />
-                      <path d="M16 18h.01" />
-                    </svg>
-                  ),
-                },
-                {
-                  _id:"68f06bfb94602845961cae78",
-                  title: "Vibrant Cities & Culture",
-                  description: "Store and access patient records, history, and medical information.",
-                  icon: (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="h-10 w-10 text-teal-600"
-                    >
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                      <circle cx="9" cy="7" r="4" />
-                      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
-                  ),
-                },
-                {
-                  _id: '68f06bda94602845961cae75',
-                  title: "Coastal Escapes & Beaches",
-                  description: "Record diagnoses, prescriptions, and follow-up appointments.",
-                  icon: (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="h-10 w-10 text-teal-600"
-                    >
-                      <path d="M8 2v4" />
-                      <path d="M16 2v4" />
-                      <rect width="18" height="18" x="3" y="4" rx="2" />
-                      <path d="M3 10h18" />
-                      <path d="m8 15 2 2 4-4" />
-                    </svg>
-                  ),
-                },
-            
-                
-              ].map((feature, index) => (
+              {categories.map((cat: any, index: any) => (
                 <div key={index} className="flex flex-col items-center space-y-2 rounded-lg border p-4">
-                  <div className="p-2">{feature.icon}</div>
-                  <h3 className="text-xl font-bold">{feature.title}</h3>
-                  <p className="text-center text-gray-500 dark:text-gray-400">{feature.description}</p>
+                  {/* <div className="p-2">{feature.icon}</div> */}
+                  <h3 className="text-xl font-bold">{cat.title}</h3>
+                  <p className="text-center text-gray-500 dark:text-gray-400">{cat._id}</p>
                 </div>
               ))}
             </div>
@@ -169,114 +118,12 @@ export default function Home() {
                 </div>
                 </div>
                 <div className="mx-auto grid max-w-8xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:grid-cols-4">
-                {[
-                  {
-                    title: "Wilderness & Adventure",
-                    description: "Manage doctor schedules and patient appointments with ease.",
-                    icon: (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-10 w-10 text-teal-600"
-                      >
-                        <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-                        <line x1="16" x2="16" y1="2" y2="6" />
-                        <line x1="8" x2="8" y1="2" y2="6" />
-                        <line x1="3" x2="21" y1="10" y2="10" />
-                        <path d="M8 14h.01" />
-                        <path d="M12 14h.01" />
-                        <path d="M16 14h.01" />
-                        <path d="M8 18h.01" />
-                        <path d="M12 18h.01" />
-                        <path d="M16 18h.01" />
-                      </svg>
-                    ),
-                  },
-                  {
-                    title: "Vibrant Cities & Culture",
-                    description: "Store and access patient records, history, and medical information.",
-                    icon: (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-10 w-10 text-teal-600"
-                      >
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                      </svg>
-                    ),
-                  },
-                  {
-                    title: "Coastal Escapes & Beaches",
-                    description: "Record diagnoses, prescriptions, and follow-up appointments.",
-                    icon: (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-10 w-10 text-teal-600"
-                      >
-                        <path d="M8 2v4" />
-                        <path d="M16 2v4" />
-                        <rect width="18" height="18" x="3" y="4" rx="2" />
-                        <path d="M3 10h18" />
-                        <path d="m8 15 2 2 4-4" />
-                      </svg>
-                    ),
-                  },
-                  {
-                    title: "Coastal Escapes & Beaches",
-                    description: "Record diagnoses, prescriptions, and follow-up appointments.",
-                    icon: (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-10 w-10 text-teal-600"
-                      >
-                        <path d="M8 2v4" />
-                        <path d="M16 2v4" />
-                        <rect width="18" height="18" x="3" y="4" rx="2" />
-                        <path d="M3 10h18" />
-                        <path d="m8 15 2 2 4-4" />
-                      </svg>
-                    ),
-                  },
-              
+                {packages.map((item:PackageInfo, index:any) => (
                   
-                ].map((feature, index) => (
                   <div key={index} className="flex flex-col items-center space-y-2 rounded-lg border p-4">
-                    <div className="p-2">{feature.icon}</div>
-                    <h3 className="text-xl font-bold">{feature.title}</h3>
-                    <p className="text-center text-gray-500 dark:text-gray-400">{feature.description}</p>
+                    {/* <div className="p-2">{feature.icon}</div> */}
+                    <h3 className="text-xl font-bold">{item.title}</h3>
+                    <p className="text-center text-gray-500 dark:text-gray-400">{item.description}</p>
                   </div>
                 ))}
                 </div>
