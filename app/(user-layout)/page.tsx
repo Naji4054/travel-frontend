@@ -78,46 +78,80 @@ export default async function Home () {
   const packages = res.data.packages
   const categories = res.data.category
 
-  // const pkg =({item} : {item: PackageInfo}) => {
-  //   const coverImage = item.image.find(img => img.isCover);
-  // }
-
   return (
     
       <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-white to-teal-50 dark:from-gray-950 dark:to-gray-900">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:grid-cols-2">
+        {/* Hero Section with Background Image */}
+        <section className="relative w-full py-12 md:py-24 lg:py-32 min-h-[600px] overflow-hidden">
+          {/* Background Image with Overlay */}
+          <div className="absolute inset-0 z-0">
+            <img
+              src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&q=80"
+              alt="Travel Background"
+              className="w-full h-full object-cover"
+            />
+            {/* Dark overlay for better text readability */}
+            <div className="absolute inset-0 bg-black/40"></div>
+          </div>
+
+          <div className="container px-4 md:px-6 relative z-10">
+            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:grid-cols-2 items-center">
+              {/* Left Side - Text Content */}
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
+                  <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none text-white drop-shadow-lg">
                     Travel with us
                   </h1>
-                  <p className="max-w-[600px] text-gray-500 md:text-xl dark:text-gray-400">
-                  Stop Dreaming, Start Exploring: Hand-Crafted Journeys Worldwide.
+                  <p className="max-w-[600px] text-gray-100 md:text-xl drop-shadow-md">
+                    Stop Dreaming, Start Exploring: Hand-Crafted Journeys Worldwide.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                 
                   <Link href="#demo">
-                    <Button size="lg" variant="outline">
+                    <Button size="lg" variant="outline" className="bg-white/90 hover:bg-white text-gray-900 border-white">
                       View Packages
                     </Button>
                   </Link>
                 </div>
               </div>
+
+              {/* Right Side - Video Thumbnail Card */}
               <div className="flex items-center justify-center">
-                <img
-                  src="/placeholder.svg?height=400&width=600"
-                  alt="Clinic Management Dashboard"
-                  width={600}
-                  height={400}
-                  className="rounded-lg object-cover shadow-lg"
-                />
+                <a 
+                  href="https://youtu.be/tdgWEEOgdrU?si=f-M3XLEcd7ZKtaIF" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="relative group block w-full max-w-[600px] rounded-lg overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-300"
+                >
+                  <div className="relative aspect-video">
+                    <img
+                      src="https://img.youtube.com/vi/tdgWEEOgdrU/maxresdefault.jpg"
+                      alt="Travel Video Thumbnail"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    {/* Play Button Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors duration-300">
+                      <div className="bg-white/90 group-hover:bg-white rounded-full p-6 group-hover:scale-110 transition-all duration-300 shadow-xl">
+                        <svg 
+                          className="w-12 h-12 text-red-600" 
+                          fill="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    {/* Watch Now Text */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                      <p className="text-white font-semibold text-lg">Watch Our Travel Story</p>
+                    </div>
+                  </div>
+                </a>
               </div>
             </div>
           </div>
         </section>
+
         <section id="features" className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
