@@ -186,6 +186,7 @@ const TravelPackagesGrid = () => {
     category: [],
     locations: []
   })
+
   const fetchOptions = async()=> {
   
     await axios.get(`${baseUrl}/packages/add-options`).then(res=> {
@@ -254,6 +255,10 @@ const TravelPackagesGrid = () => {
               <label className="block text-sm font-semibold text-gray-700 mb-2">Category listing</label>
               <div className="flex flex-wrap gap-2">
                 
+              {/* The first element { _id: null, title: 'All' } is manually added — representing the “All” filter option (to show all categories without filtering).
+
+              The ... (spread operator) copies all elements from options.category right after that. */}
+
                 {[{_id: null, title: 'All'}, ...options.category].map((category:any) => (
                   <button
                     key={category._id}
@@ -264,6 +269,15 @@ const TravelPackagesGrid = () => {
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
+
+      {/* className toggles styles:
+
+      If categoryValue === category._id (the active URL param), apply the active style (bg-blue-600 text-white).
+
+      Otherwise, show the default inactive style (bg-gray-100 ...). */}
+
+
+      
                     {category.title}
                   </button>
                 ))}
