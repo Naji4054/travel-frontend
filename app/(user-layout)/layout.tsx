@@ -30,7 +30,7 @@ const UserLayout = ({children}: any) => {
             <Link href="/international" className="text-sm font-medium">
               International
             </Link>
-            <Link href="/indian" className="text-sm font-medium">
+            <Link href="/domestic" className="text-sm font-medium">
               Domestic
             </Link>
             <Link href="/group" className="text-sm font-medium">
@@ -162,7 +162,7 @@ const UserLayout = ({children}: any) => {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/indian" className="text-sm text-gray-600 hover:text-teal-600 dark:text-gray-400 dark:hover:text-teal-500 transition-colors">
+                  <Link href="/domestic" className="text-sm text-gray-600 hover:text-teal-600 dark:text-gray-400 dark:hover:text-teal-500 transition-colors">
                     Domestic
                   </Link>
                 </li>

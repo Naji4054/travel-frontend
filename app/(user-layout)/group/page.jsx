@@ -1,11 +1,6 @@
-import React from 'react'
+import TravelPackagesGrid from "@/components/package";
 
-const GroupPackages = () => {
-  return (
-    <div>
-      group packages
-    </div>
-  )
+
+export default function InternationalPackages() {
+  return <TravelPackagesGrid defaultType="Group" hideFilters />;
 }
-
-export default GroupPackages

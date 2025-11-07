@@ -5,7 +5,7 @@ import path from "path";
 
 const ADMIN_PATHS: string[] = ["/dashboard", "/admin","/dashboard/packages","/dashboard/category","dashboard/location"];
 const USER_PATHS: string[] = [];
-const PUBLIC_PATHS : string[] = ["/", "/login", "/register", "/international", "/indian", "/group"];
+const PUBLIC_PATHS : string[] = ["/", "/login", "/register", "/international", "/domestic", "/group"];
 
 
 const middleware = async (req: NextRequest) => {
