@@ -130,7 +130,8 @@ const TravelPackagesGrid = ({defaultType, hideFilters} : {defaultType?: string, 
 
 // set 
   const categoryValue = searchParams.get('category')
-  const typeValue = defaultType?? searchParams.get('type')
+  const typeValue = defaultType?? searchParams.get('type')// when the API call goes: GET /packages/all-packages?type=International 
+  //[same word "International" that exists in DB.]The backend fetches all packages where:package.type === "International"
   
 
   
